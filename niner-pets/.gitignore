@@ -21,3 +21,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+#flash related
+venv
+__pycache__
+myenv
+.env

@@ -1,9 +1,9 @@
-import { Box, Button, Grid, Paper, Typography } from '@mui/material';
+import { Alert, Box, Button, Grid, Paper, Typography } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import React from 'react';
+import React, { useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import NavBar from './Components/NavBar.js';
-import LoginPage from './Pages/Login'; // Import the LoginPage component
+import LoginPage from './Pages/Login';
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -150,7 +150,6 @@ function HomePage() {
               </Box>
             </Paper>
           </Grid>
-
         </Grid>
       </Box>
     </>
@@ -158,15 +157,40 @@ function HomePage() {
 }
 
 function App() {
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // Function to trigger login success message
+  const handleLoginSuccess = () => {
+    setLoginSuccess(true);
+    setTimeout(() => {
+      setLoginSuccess(false);
+    }, 3000); // Hide after 3 seconds
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <NavBar />
+      {loginSuccess && (
+        <Alert 
+          severity="success" 
+          sx={{ 
+            position: 'fixed', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)', 
+            zIndex: 10, 
+            minWidth: '300px',
+            padding: 2
+          }}>
+          Login successful!
+        </Alert>
+      )}
       <br></br>
       <br></br>
       <br></br>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} /> 
       </Routes>
     </ThemeProvider>
   );
