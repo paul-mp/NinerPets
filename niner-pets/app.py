@@ -1,16 +1,19 @@
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from models import db, User  # Import the db and User model
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
-# Configuring database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123@localhost:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-# Enable CORS for all routes
+
 CORS(app)
 
 @app.route('/')
