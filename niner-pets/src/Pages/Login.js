@@ -1,11 +1,18 @@
-import { Box, Button, Container, Paper, TextField, Typography } from '@mui/material';
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Container,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const LoginPage = ({ onLoginSuccess }) => {  
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+const LoginPage = ({ onLoginSuccess }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -13,10 +20,10 @@ const LoginPage = ({ onLoginSuccess }) => {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/login', {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:5000/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
       });
@@ -25,32 +32,41 @@ const LoginPage = ({ onLoginSuccess }) => {
 
       if (response.ok) {
         // Login successful
-        setErrorMessage('');
+        setErrorMessage("");
         onLoginSuccess(); // Call the callback function to show the success message
-        navigate('/'); // Redirect to the home page
+        navigate("/"); // Redirect to the home page
       } else {
-        setErrorMessage(data.error || 'Login failed');
+        setErrorMessage(data.error || "Login failed");
       }
     } catch (error) {
-      console.error('Error:', error);
-      setErrorMessage('An error occurred during login');
+      console.error("Error:", error);
+      setErrorMessage("An error occurred during login");
     }
   };
 
   return (
     <Container
       component="main"
-      maxWidth="xs"
-      sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      maxWidth="sm"
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "85vh",
+      }}
     >
-      <Paper elevation={3} sx={{ padding: 4, borderRadius: 2 }}>
+      <Paper elevation={4} sx={{ padding: 8, borderRadius: 5, width: "450px" }}>
         <Typography component="h1" variant="h5" sx={{ marginBottom: 3 }}>
-          Login
+          <strong>Login</strong>
         </Typography>
 
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
 
-        <Box component="form" onSubmit={handleLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box
+          component="form"
+          onSubmit={handleLogin}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        >
           <TextField
             variant="outlined"
             margin="normal"
@@ -79,10 +95,16 @@ const LoginPage = ({ onLoginSuccess }) => {
           />
           <Button
             type="submit"
-            fullWidth
             variant="contained"
             color="primary"
-            sx={{ marginTop: 2, backgroundColor: '#005035', '&:hover': { backgroundColor: '#003f29' } }}
+            sx={{
+              marginTop: 2,
+              backgroundColor: "#005035",
+              "&:hover": { backgroundColor: "#003f29" },
+              borderRadius: "30px",
+              width: "321px",
+              height: "50px",
+            }}
           >
             Login
           </Button>
