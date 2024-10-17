@@ -1,5 +1,6 @@
 import { Box, Button, Grid, Paper, Typography } from '@mui/material';
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 function HomePage() {
   return (
@@ -31,7 +32,7 @@ function HomePage() {
                   <Button variant="contained">Medications</Button>
                 </Grid>
                 <Grid item>
-                  <Button variant="contained">Billing Summary</Button>
+                <Button variant="contained" component={Link} to="/billing">Billing Summary</Button>
                 </Grid>
               </Grid>
             </Paper>

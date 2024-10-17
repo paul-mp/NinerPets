@@ -6,6 +6,7 @@ import NavBar from './Components/NavBar';
 import HomePage from './Pages/HomePage';
 import LoginPage from './Pages/Login';
 import RegisterPage from './Pages/Register';
+import Billing from './Pages/Billing';
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -71,6 +72,9 @@ function App() {
 
         {/* Protect homepage content */}
         <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+
+        {/* Billing page*/}
+        <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );
