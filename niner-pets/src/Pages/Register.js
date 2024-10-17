@@ -2,18 +2,18 @@ import { Box, Button, Container, Paper, TextField, Typography } from "@mui/mater
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const LoginPage = ({ onLoginSuccess }) => {
+const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
-  const handleLogin = async (event) => {
+  const handleRegister = async (event) => {
     event.preventDefault();
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/login", {
+      const response = await fetch("http://127.0.0.1:5000/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -24,21 +24,15 @@ const LoginPage = ({ onLoginSuccess }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Login successful
         setErrorMessage("");
-        onLoginSuccess(); // Call the callback function to show the success message
-        navigate("/home"); // Redirect to the home page
+        navigate("/home"); // Redirect to the homepage after successful registration
       } else {
-        setErrorMessage(data.error || "Login failed");
+        setErrorMessage(data.error || "Registration failed");
       }
     } catch (error) {
       console.error("Error:", error);
-      setErrorMessage("An error occurred during login");
+      setErrorMessage("An error occurred during registration");
     }
-  };
-
-  const handleNavigateToRegister = () => {
-    navigate("/register"); // Navigate to the register page
   };
 
   return (
@@ -54,14 +48,14 @@ const LoginPage = ({ onLoginSuccess }) => {
     >
       <Paper elevation={4} sx={{ padding: 8, borderRadius: 5, width: "450px" }}>
         <Typography component="h1" variant="h5" sx={{ marginBottom: 3 }}>
-          <strong>Login</strong>
+          <strong>Register</strong>
         </Typography>
 
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
 
         <Box
           component="form"
-          onSubmit={handleLogin}
+          onSubmit={handleRegister}
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
           <TextField
@@ -69,11 +63,11 @@ const LoginPage = ({ onLoginSuccess }) => {
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email"
             name="email"
+            label="Email"
+            type="email"
+            id="email"
             autoComplete="email"
-            autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -86,7 +80,7 @@ const LoginPage = ({ onLoginSuccess }) => {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -103,21 +97,6 @@ const LoginPage = ({ onLoginSuccess }) => {
               height: "50px",
             }}
           >
-            Login
-          </Button>
-
-          {/* Add the Register button here */}
-          <Button
-            onClick={handleNavigateToRegister}
-            variant="outlined"
-            color="secondary"
-            sx={{
-              marginTop: 2,
-              borderRadius: "30px",
-              width: "321px",
-              height: "50px",
-            }}
-          >
             Register
           </Button>
         </Box>
@@ -126,4 +105,4 @@ const LoginPage = ({ onLoginSuccess }) => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

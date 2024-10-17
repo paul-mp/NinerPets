@@ -13,18 +13,15 @@ body, html {
   }
   
   .app-background {
-    background-image: url('../../Pictures/unc-charlotte-background.jpg'); 
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
     background-attachment: fixed;
     min-height: 100vh;
-    width: 100%; 
-    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center; 
-    align-items: center; 
+    justify-content: center;
+    align-items: center;
   }
   
   
