@@ -8,6 +8,7 @@ import LoginPage from './Pages/Login';
 import RegisterPage from './Pages/Register';
 import Billing from './Pages/Billing';
 import Vets from './Pages/Vets';
+import Medications from './Pages/Medications';
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -79,6 +80,9 @@ function App() {
 
         {/* Vets page*/}
         <Route path="/vets" element={<ProtectedRoute><Vets /></ProtectedRoute>} />
+
+        {/* Medications page*/}
+        <Route path="/medications" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );

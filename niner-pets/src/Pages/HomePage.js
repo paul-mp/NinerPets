@@ -29,7 +29,7 @@ function HomePage() {
                   <Button variant="contained">Test Results</Button>
                 </Grid>
                 <Grid item>
-                  <Button variant="contained">Medications</Button>
+                  <Button variant="contained" component={Link} to="/medications">Medications</Button>
                 </Grid>
                 <Grid item>
                 <Button variant="contained" component={Link} to="/billing">Billing Summary</Button>
