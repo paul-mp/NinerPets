@@ -92,27 +92,35 @@ function HomePage() {
               <Box sx={{ marginBottom: 2 }}>
                 <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
                   <Typography variant="subtitle1" gutterBottom>
-                    <strong>Doctor 1, MD</strong>
+                    <strong>Dr. Susan Farley, DVM</strong>
                     <br />
-                    Dog vet
+                    Dog Vet
                   </Typography>
-                  <Button variant="outlined" color="primary">Details</Button>
+                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
                 </Paper>
                 <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
                   <Typography variant="subtitle1" gutterBottom>
-                    <strong>Doctor 2, MD</strong>
+                    <strong>Dr. Colin Pace, DVM</strong>
                     <br />
-                    Cat vet
+                    Cat Vet
                   </Typography>
-                  <Button variant="outlined" color="primary">Details</Button>
+                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
                 </Paper>
                 <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
                   <Typography variant="subtitle1" gutterBottom>
-                    <strong>Doctor 3, MD</strong>
+                    <strong>Dr. Leah Zimmerman, DVM</strong>
                     <br />
-                    Dog vet
+                    Exotic Pets Vet
                   </Typography>
-                  <Button variant="outlined" color="primary">Details</Button>
+                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
+                </Paper>
+                <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Dr. Emily Carter, DVM</strong>
+                    <br />
+                    Reptile Vet
+                  </Typography>
+                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
                 </Paper>
               </Box>
             </Paper>
