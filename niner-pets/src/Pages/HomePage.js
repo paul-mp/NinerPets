@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Paper, CircularProgress, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Grid, Paper, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react'; // Import useEffect and useState
 import { Link } from 'react-router-dom';
 
@@ -33,22 +33,13 @@ function HomePage() {
         <Grid container spacing={3}>
           {/* Navigation Buttons */}
           <Grid item xs={12}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
+            <Paper elevation={3} sx={{ padding: 2, minHeight: '110px', minWidth: '1100px'}}>
               <Typography variant="h5" gutterBottom>
                 <strong>Welcome, User!</strong>
               </Typography>
               <Grid container spacing={2}>
                 <Grid item>
-                  <Button variant="contained">Schedule an Appointment</Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="contained">Messages</Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="contained">Visits</Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="contained">Test Results</Button>
+                  <Button variant="contained" component={Link} to="/appointments">Schedule an Appointment</Button>
                 </Grid>
                 <Grid item>
                   <Button variant="contained" component={Link} to="/medications">Medications</Button>
