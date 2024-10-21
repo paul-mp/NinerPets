@@ -8,11 +8,14 @@ import MenuItem from '@mui/material/MenuItem';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const NavBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isAuthenticated = localStorage.getItem('isAuthenticated'); 
 
   // Function to open the menu
   const handleMenuOpen = (event) => {
@@ -25,8 +28,16 @@ const NavBar = () => {
   };
 
   const handleLoginClick = () => {
-    navigate('/login'); 
+    navigate('/login');
   };
+
+  const handleNinerPetsClick = () => {
+    if (isAuthenticated) {
+      navigate('/home'); 
+    }
+  };
+
+  const isOnLoginPage = location.pathname === '/login';
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -42,17 +53,25 @@ const NavBar = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-              NinerPets
-            </Link>
+
+
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1, cursor: isAuthenticated && !isOnLoginPage ? 'pointer' : 'not-allowed', color: isAuthenticated && !isOnLoginPage ? 'inherit' : 'gray' }}
+            onClick={isAuthenticated && !isOnLoginPage ? handleNinerPetsClick : null} 
+          >
+            NinerPets
           </Typography>
-          <Button color="inherit" onClick={handleLoginClick}>
-            Login
-          </Button>
+
+          {!isAuthenticated && (
+            <Button color="inherit" onClick={handleLoginClick}>
+              Login
+            </Button>
+          )}
         </Toolbar>
 
-        {/* The Menu component */}
+
         <Menu
           id="menu-appbar"
           anchorEl={anchorEl}
