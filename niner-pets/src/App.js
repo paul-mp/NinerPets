@@ -6,6 +6,10 @@ import NavBar from './Components/NavBar';
 import HomePage from './Pages/HomePage';
 import LoginPage from './Pages/Login';
 import RegisterPage from './Pages/Register';
+import Billing from './Pages/Billing';
+import Vets from './Pages/Vets';
+import Medications from './Pages/Medications';
+import Appointments from './Pages/Appointments';
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -71,6 +75,18 @@ function App() {
 
         {/* Protect homepage content */}
         <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+
+        {/* Billing page*/}
+        <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+
+        {/* Vets page*/}
+        <Route path="/vets" element={<ProtectedRoute><Vets /></ProtectedRoute>} />
+
+        {/* Medications page*/}
+        <Route path="/medications" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
+
+        {/* Appointments page*/}
+        <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );

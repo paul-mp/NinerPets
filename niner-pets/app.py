@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from models import db, User  # Import the db and User model
+from models import db, User, Vet  # Import the db and User model
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -63,6 +63,24 @@ def register():
     db.session.commit()
 
     return jsonify({'message': 'User registered successfully'}), 201
+
+@app.route('/vets', methods=['GET'])
+def get_vets():
+    vets = Vet.query.all()  
+    return jsonify([vet.to_dict() for vet in vets]) 
+
+@app.route('/add_vet', methods=['POST'])
+def add_vet():
+    data = request.json
+    name = data.get('name')
+    specialty = data.get('specialty')
+    information = data.get('information')
+
+    new_vet = Vet(name=name, specialty=specialty, information=information)
+    db.session.add(new_vet)
+    db.session.commit()
+
+    return jsonify({'message': 'Vet added successfully'}), 201
 
 if __name__ == '__main__':
     with app.app_context():
