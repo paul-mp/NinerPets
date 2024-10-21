@@ -1,24 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Grid, Paper, Typography, TextField, Button, MenuItem, Snackbar } from '@mui/material';
-
-const vetsData = [
-  {
-    name: "Dr. Susan Farley, DVM",
-    specialty: "Dog Vet",
-  },
-  {
-    name: "Dr. Colin Pace, DVM",
-    specialty: "Cat Vet",
-  },
-  {
-    name: "Dr. Leah Zimmerman, DVM",
-    specialty: "Exotic Pets",
-  },
-  {
-    name: "Dr. Emily Carter, DVM",
-    specialty: "Reptiles",
-  },
-];
 
 const visitReasons = [
   "Routine Checkup",
@@ -34,7 +15,26 @@ function Appointments() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVet, setSelectedVet] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
+  const [vets, setVets] = useState([]); 
+  const [error, setError] = useState(''); 
   const [openSnackbar, setOpenSnackbar] = useState(false);
+
+  useEffect(() => {
+    const fetchVets = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/vets'); 
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setVets(data);
+      } catch (error) {
+        setError('Error fetching vet data: ' + error.message);
+      }
+    };
+
+    fetchVets();
+  }, []);
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
@@ -56,7 +56,7 @@ function Appointments() {
     setOpenSnackbar(false);
   };
 
-  const filteredVets = vetsData.filter(vet =>
+  const filteredVets = vets.filter(vet =>
     vet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vet.specialty.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -154,7 +154,7 @@ function Appointments() {
                     variant="outlined"
                     required
                   >
-                    {vetsData.map(vet => (
+                    {filteredVets.map(vet => (
                       <MenuItem key={vet.name} value={vet.name}>
                         {vet.name} ({vet.specialty})
                       </MenuItem>
@@ -259,6 +259,7 @@ function Appointments() {
 
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="h6">Results:</Typography>
+                  {error && <Typography color="error">{error}</Typography>}
                   {filteredVets.length === 0 ? (
                     <Typography>No results found.</Typography>
                   ) : (

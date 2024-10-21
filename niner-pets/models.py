@@ -21,3 +21,18 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+class Vet(db.Model):
+    __tablename__ = 'vets'  
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    specialty = db.Column(db.String(100))
+    information = db.Column(db.Text)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'specialty': self.specialty,
+            'information': self.information,
+        }

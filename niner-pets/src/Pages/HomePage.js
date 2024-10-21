@@ -1,11 +1,33 @@
-import { Box, Button, Grid, Paper, Typography } from '@mui/material';
-import React from 'react';
+import { Box, Button, Grid, Paper, CircularProgress, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react'; // Import useEffect and useState
 import { Link } from 'react-router-dom';
 
 function HomePage() {
+  const [vets, setVets] = useState([]); 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVets = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('http://localhost:5000/vets'); 
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setVets(data); 
+      } catch (error) {
+        console.error('Error fetching vets:', error);
+      } finally {
+        setLoading(false); 
+      }
+    };
+
+    fetchVets(); 
+  }, []); 
+
   return (
     <div className="app-background">
-
       {/* Main Content */}
       <Box sx={{ flexGrow: 1, padding: 2 }}>
         <Grid container spacing={3}>
@@ -32,13 +54,13 @@ function HomePage() {
                   <Button variant="contained" component={Link} to="/medications">Medications</Button>
                 </Grid>
                 <Grid item>
-                <Button variant="contained" component={Link} to="/billing">Billing Summary</Button>
+                  <Button variant="contained" component={Link} to="/billing">Billing Summary</Button>
                 </Grid>
               </Grid>
             </Paper>
           </Grid>
 
-          {/* Latest Updates */}
+          {/* Latest Updates (Original Content) */}
           <Grid item xs={12} md={8}>
             <Paper elevation={3} sx={{ padding: 2 }}>
               <Typography variant="h6" gutterBottom>
@@ -90,38 +112,24 @@ function HomePage() {
                 <strong>Care Team and Recent Providers</strong>
               </Typography>
               <Box sx={{ marginBottom: 2 }}>
-                <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    <strong>Dr. Susan Farley, DVM</strong>
-                    <br />
-                    Dog Vet
-                  </Typography>
-                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
-                </Paper>
-                <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    <strong>Dr. Colin Pace, DVM</strong>
-                    <br />
-                    Cat Vet
-                  </Typography>
-                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
-                </Paper>
-                <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    <strong>Dr. Leah Zimmerman, DVM</strong>
-                    <br />
-                    Exotic Pets Vet
-                  </Typography>
-                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
-                </Paper>
-                <Paper elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    <strong>Dr. Emily Carter, DVM</strong>
-                    <br />
-                    Reptile Vet
-                  </Typography>
-                  <Button variant="outlined" color="primary" component={Link} to="/vets/">Details</Button>
-                </Paper>
+                {loading ? ( 
+                  <CircularProgress />
+                ) : vets.length > 0 ? ( 
+                  vets.map(vet => (
+                    <Paper key={vet.id} elevation={1} sx={{ padding: 2, marginBottom: 1 }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        <strong>{vet.name}</strong>
+                        <br />
+                        {vet.specialty}
+                      </Typography>
+                      <Button variant="outlined" color="primary" component={Link} to="/vets">
+                        Details
+                      </Button>
+                    </Paper>
+                  ))
+                ) : (
+                  <Typography>No veterinarians available.</Typography>
+                )}
               </Box>
             </Paper>
           </Grid>
