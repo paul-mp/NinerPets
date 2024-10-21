@@ -13,16 +13,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const NavBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); 
 
   const isAuthenticated = localStorage.getItem('isAuthenticated'); 
 
-  // Function to open the menu
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  // Function to close the menu
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
@@ -33,11 +32,11 @@ const NavBar = () => {
 
   const handleNinerPetsClick = () => {
     if (isAuthenticated) {
-      navigate('/home'); 
+      navigate('/home');
     }
   };
 
-  const isOnLoginPage = location.pathname === '/login';
+  const isOnAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -54,12 +53,11 @@ const NavBar = () => {
             <MenuIcon />
           </IconButton>
 
-
           <Typography
             variant="h6"
             component="div"
-            sx={{ flexGrow: 1, cursor: isAuthenticated && !isOnLoginPage ? 'pointer' : 'not-allowed', color: isAuthenticated && !isOnLoginPage ? 'inherit' : 'gray' }}
-            onClick={isAuthenticated && !isOnLoginPage ? handleNinerPetsClick : null} 
+            sx={{ flexGrow: 1, cursor: isAuthenticated && !isOnAuthPage ? 'pointer' : 'not-allowed', color: isAuthenticated && !isOnAuthPage ? 'inherit' : 'gray' }}
+            onClick={isAuthenticated && !isOnAuthPage ? handleNinerPetsClick : null} 
           >
             NinerPets
           </Typography>
@@ -70,7 +68,6 @@ const NavBar = () => {
             </Button>
           )}
         </Toolbar>
-
 
         <Menu
           id="menu-appbar"
