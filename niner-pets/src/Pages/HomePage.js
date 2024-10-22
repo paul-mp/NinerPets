@@ -47,6 +47,9 @@ function HomePage() {
                 <Grid item>
                   <Button variant="contained" component={Link} to="/billing">Billing Summary</Button>
                 </Grid>
+                <Grid item>
+                  <Button variant="contained" component={Link} to="/calendar">Calendar</Button>
+                </Grid>
               </Grid>
             </Paper>
           </Grid>
