@@ -36,3 +36,26 @@ class Vet(db.Model):
             'specialty': self.specialty,
             'information': self.information,
         }
+    
+class Pet(db.Model):
+    __tablename__ = 'pets'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False) 
+    name = db.Column(db.String(255), nullable=False)
+    species = db.Column(db.String(100), nullable=False) 
+    breed = db.Column(db.String(100), nullable=False)
+    dob = db.Column(db.Date, nullable=False)
+    weight = db.Column(db.Numeric(5, 2), nullable=False)  
+
+    user = db.relationship('User', backref=db.backref('pets', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'species': self.species,
+            'breed': self.breed,
+            'dob': self.dob.isoformat(),  
+            'weight': float(self.weight),  
+        }
