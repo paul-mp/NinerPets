@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -18,14 +19,14 @@ const RegisterPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }), // Send email and password
+        body: JSON.stringify({ email, username, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setErrorMessage("");
-        navigate("/home"); // Redirect to the homepage after successful registration
+        navigate("/home");
       } else {
         setErrorMessage(data.error || "Registration failed");
       }
@@ -70,6 +71,18 @@ const RegisterPage = () => {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            name="username"
+            label="Username"
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
           <TextField
             variant="outlined"
