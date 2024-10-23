@@ -1,12 +1,15 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from models import db, User, Vet, Pet  # Import the db and User model
+from models import db, User, Vet, Pet  # Import the db and models
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
+
+# Set up secret key for session management
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey')  # Use a secret key for securely signing the session cookies
 
 # Configure database connection
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -15,28 +18,45 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize the database
 db.init_app(app)
 
-# Enable CORS for all routes, allowing requests from 'http://localhost:3000'
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+# Enable CORS for all routes, allowing requests from 'http://localhost:3000' and supporting credentials
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
+# Set session cookie settings
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # For cross-origin session cookies
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS, False otherwise (especially on localhost)
+
+# Define routes
 @app.route('/')
 def home():
     return "Welcome to NinerPets!"
 
-# Login route
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
-    email = data.get('email') 
+    email_or_username = data.get('email_or_username')
     password = data.get('password')
 
-    user = User.query.filter_by(email=email).first()
+    # Check if login is using username or email
+    user = User.query.filter(
+        (User.email == email_or_username) | (User.username == email_or_username)
+    ).first()
 
-    if user and user.password == password:
-        return jsonify(user.to_dict()), 200
+    if user and user.check_password(password):
+        # Set session variables
+        session['user_id'] = user.id
+        session['username'] = user.username  # Make sure this exists
+        print(f"Session set for user {user.username}")
+        return jsonify({'message': 'Login successful'}), 200
     else:
+        print(f"Login failed for user: {email_or_username}")
         return jsonify({'error': 'Invalid credentials'}), 401
 
-# Register route
+@app.route('/current_user', methods=['GET'])
+def current_user():
+    if 'username' in session:
+        return jsonify({'username': session['username']}), 200
+    return jsonify({'error': 'Not logged in'}), 401
+
 @app.route('/register', methods=['OPTIONS', 'POST'])
 def register():
     if request.method == 'OPTIONS':
@@ -47,6 +67,7 @@ def register():
     data = request.json
     email = data.get('email')
     password = data.get('password')
+    username = data.get('username')
 
     # Check if email is valid and ends with charlotte.edu or uncc.edu
     if not email.endswith("@charlotte.edu") and not email.endswith("@uncc.edu"):
@@ -57,8 +78,9 @@ def register():
     if user:
         return jsonify({'error': 'Email already registered'}), 400
 
-    # Create and save the new user
-    new_user = User(email=email, password=password)
+    # Create and save the new user, make sure to hash the password
+    new_user = User(email=email, username=username)
+    new_user.set_password(password)  # Hashing the password
     db.session.add(new_user)
     db.session.commit()
 
@@ -68,6 +90,21 @@ def register():
 def get_vets():
     vets = Vet.query.all()  
     return jsonify([vet.to_dict() for vet in vets]) 
+
+@app.route('/user', methods=['GET'])
+def get_user_info():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            return jsonify({'username': user.username}), 200
+    return jsonify({'error': 'User not logged in'}), 401
+
+@app.route('/get_username', methods=['GET'])
+def get_username():
+    if 'user_id' in session:
+        return jsonify({'username': session['username']}), 200
+    else:
+        return jsonify({'error': 'Not authenticated'}), 401
 
 @app.route('/add_vet', methods=['POST'])
 def add_vet():
@@ -82,16 +119,14 @@ def add_vet():
 
     return jsonify({'message': 'Vet added successfully'}), 201
 
-# Get all pets
 @app.route('/pets', methods=['GET'])
 def get_pets():
     user_id = request.args.get('user_id')
     if user_id:
         pets = Pet.query.filter_by(user_id=user_id).all()
         return jsonify([pet.to_dict() for pet in pets])
-    return jsonify({'error': 'User ID is required'}), 40
+    return jsonify({'error': 'User ID is required'}), 400
 
-# Add a new pet
 @app.route('/pets', methods=['POST'])
 def add_pet():
     data = request.json
@@ -111,7 +146,6 @@ def add_pet():
 
     return jsonify({'message': 'Pet added successfully'}), 201
 
-# Update a pet
 @app.route('/pets/<int:pet_id>', methods=['PUT'])
 def update_pet(pet_id):
     data = request.json
@@ -126,7 +160,6 @@ def update_pet(pet_id):
     db.session.commit()
     return jsonify({'message': 'Pet updated successfully'}), 200
 
-# Delete a pet
 @app.route('/pets/<int:pet_id>', methods=['DELETE'])
 def delete_pet(pet_id):
     pet = Pet.query.get(pet_id)
