@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from models import db, User, Vet  # Import the db and User model
+from models import db, User, Vet, Pet  # Import the db and User model
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -81,6 +81,61 @@ def add_vet():
     db.session.commit()
 
     return jsonify({'message': 'Vet added successfully'}), 201
+
+# Get all pets
+@app.route('/pets', methods=['GET'])
+def get_pets():
+    user_id = request.args.get('user_id')
+    if user_id:
+        pets = Pet.query.filter_by(user_id=user_id).all()
+        return jsonify([pet.to_dict() for pet in pets])
+    return jsonify({'error': 'User ID is required'}), 40
+
+# Add a new pet
+@app.route('/pets', methods=['POST'])
+def add_pet():
+    data = request.json
+    user_id = data.get('user_id')
+    name = data.get('name')
+    species = data.get('species')
+    breed = data.get('breed')
+    dob = data.get('dob')
+    weight = data.get('weight')
+
+    if not all([name, species, breed, dob, weight, user_id]):
+        return jsonify({'error': 'All fields are required.'}), 400
+
+    new_pet = Pet(user_id=user_id, name=name, species=species, breed=breed, dob=dob, weight=weight)
+    db.session.add(new_pet)
+    db.session.commit()
+
+    return jsonify({'message': 'Pet added successfully'}), 201
+
+# Update a pet
+@app.route('/pets/<int:pet_id>', methods=['PUT'])
+def update_pet(pet_id):
+    data = request.json
+    pet = Pet.query.get_or_404(pet_id)
+
+    pet.name = data.get('name', pet.name)
+    pet.species = data.get('species', pet.species)
+    pet.breed = data.get('breed', pet.breed)
+    pet.dob = data.get('dob', pet.dob)
+    pet.weight = data.get('weight', pet.weight)
+
+    db.session.commit()
+    return jsonify({'message': 'Pet updated successfully'}), 200
+
+# Delete a pet
+@app.route('/pets/<int:pet_id>', methods=['DELETE'])
+def delete_pet(pet_id):
+    pet = Pet.query.get(pet_id)
+    if pet is None:
+        return jsonify({'message': 'Pet not found'}), 404
+
+    db.session.delete(pet)
+    db.session.commit()
+    return jsonify({'message': 'Pet deleted successfully'}), 200
 
 if __name__ == '__main__':
     with app.app_context():

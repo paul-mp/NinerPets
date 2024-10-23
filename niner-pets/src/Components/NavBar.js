@@ -36,6 +36,12 @@ const NavBar = () => {
     }
   };
 
+  const handleProfileClick = () => {
+    if (isAuthenticated) {
+      navigate('/profile'); 
+      handleMenuClose(); 
+    }
+  };
   const isOnAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   return (
@@ -84,8 +90,7 @@ const NavBar = () => {
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-          <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+          <MenuItem onClick={handleProfileClick}>Profile</MenuItem>
           <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
         </Menu>
       </AppBar>

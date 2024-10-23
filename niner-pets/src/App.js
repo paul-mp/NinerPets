@@ -10,6 +10,8 @@ import Billing from './Pages/Billing';
 import Vets from './Pages/Vets';
 import Medications from './Pages/Medications';
 import Appointments from './Pages/Appointments';
+import ManagePets from './Pages/ManagePets';
+import Profile from './Pages/Profile';
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -87,6 +89,12 @@ function App() {
 
         {/* Appointments page*/}
         <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
+
+        {/* Appointments page*/}
+        <Route path="/manage-pets" element={<ProtectedRoute><ManagePets /></ProtectedRoute>} />
+
+        {/* Profile page*/}
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );
