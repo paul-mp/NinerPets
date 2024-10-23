@@ -1,20 +1,41 @@
 import { Box, Button, CircularProgress, Grid, Paper, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 function CalendarPage() {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [gapiInited, setGapiInited] = useState(false);
   const [gisInited, setGisInited] = useState(false);
-  const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
-  const API_KEY = process.env.REACT_APP_API_KEY;
+  const [tokenClient, setTokenClient] = useState(null);
+
+  // These should be defined in your .env file as REACT_APP_CALENDAR_API and REACT_APP_CALENDAR_ID
+  const API_KEY = process.env.REACT_APP_CALENDAR_API;
+  const CLIENT_ID = process.env.REACT_APP_CALENDAR_ID;
   const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
   const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
   useEffect(() => {
+    // Function to load Google scripts
+    const loadGoogleScripts = () => {
+      const script1 = document.createElement('script');
+      script1.src = 'https://apis.google.com/js/api.js';
+      script1.onload = gapiLoaded;
+      script1.onerror = () => console.error('Failed to load Google API script');
+      document.body.appendChild(script1);
+
+      const script2 = document.createElement('script');
+      script2.src = 'https://accounts.google.com/gsi/client';
+      script2.onload = gisLoaded;
+      script2.onerror = () => console.error('Failed to load Google Identity Services script');
+      document.body.appendChild(script2);
+    };
+
     const gapiLoaded = () => {
-      window.gapi.load('client', initializeGapiClient);
+      if (window.gapi) {
+        window.gapi.load('client', initializeGapiClient);
+      } else {
+        console.error('Google API script failed to load');
+      }
     };
 
     const initializeGapiClient = async () => {
@@ -30,32 +51,28 @@ function CalendarPage() {
     };
 
     const gisLoaded = () => {
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: '', // Will set this in handleAuthClick
-      });
-      setGisInited(true);
-      setTokenClient(tokenClient);
-    };
-
-    const loadGoogleScripts = () => {
-      const script1 = document.createElement('script');
-      script1.src = 'https://apis.google.com/js/api.js';
-      script1.onload = gapiLoaded;
-      document.body.appendChild(script1);
-
-      const script2 = document.createElement('script');
-      script2.src = 'https://accounts.google.com/gsi/client';
-      script2.onload = gisLoaded;
-      document.body.appendChild(script2);
+      if (window.google) {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: '', // Will set this in handleAuthClick
+        });
+        setTokenClient(client);
+        setGisInited(true);
+      } else {
+        console.error('Google Identity Services script failed to load');
+      }
     };
 
     loadGoogleScripts();
-  }, [CLIENT_ID, API_KEY]);
+  }, [API_KEY, CLIENT_ID]);
 
-  const handleAuthClick = async () => {
-    if (!gapiInited || !gisInited) return;
+  const handleAuthClick = () => {
+    if (!gapiInited || !gisInited || !tokenClient) {
+      console.error('Google API is not fully initialized');
+      return;
+    }
+
     tokenClient.callback = async (response) => {
       if (response.error) {
         console.error('Auth error:', response.error);
@@ -63,6 +80,7 @@ function CalendarPage() {
       }
       await listUpcomingEvents();
     };
+
     tokenClient.requestAccessToken();
   };
 

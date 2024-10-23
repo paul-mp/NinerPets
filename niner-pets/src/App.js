@@ -10,6 +10,7 @@ import Billing from './Pages/Billing';
 import Vets from './Pages/Vets';
 import Medications from './Pages/Medications';
 import Appointments from './Pages/Appointments';
+import Calendar from './Pages/Calendar';
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -87,6 +88,9 @@ function App() {
 
         {/* Appointments page*/}
         <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
+
+        {/* Calendar page*/}
+        <Route path="/Calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );
