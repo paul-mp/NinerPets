@@ -69,6 +69,13 @@ const ManagePets = () => {
     };
 
     const handleSubmit = () => {
+        // Validate that all required fields are filled
+        if (!petData.name || !petData.species || !petData.breed || !petData.dob || !petData.weight) {
+            setSnackbarMessage('Please fill out all required fields.');
+            setSnackbarOpen(true);
+            return;
+        }
+
         const petToAdd = {
             name: petData.name,
             species: petData.species === 'Other' ? petData.otherSpecies : petData.species,
@@ -137,23 +144,13 @@ const ManagePets = () => {
         setSnackbarOpen(false);
     };
 
-    const handleEditPet = (petId) => {
-        const petToEdit = pets.find(pet => pet.id === petId);
-        if (petToEdit) {
-            setPetData({
-                name: petToEdit.name,
-                species: petToEdit.species,
-                otherSpecies: petToEdit.species === 'Other' ? petToEdit.otherSpecies : '',
-                breed: petToEdit.breed,
-                dob: petToEdit.dob,
-                weight: petToEdit.weight
-            });
-            setSelectedPetId(petId);
-            setOpenEditPet(true);
-        }
-    };
-
     const handleUpdatePet = () => {
+        if (!petData.name || !petData.species || !petData.breed || !petData.dob || !petData.weight) {
+            setSnackbarMessage('Please fill out all required fields.');
+            setSnackbarOpen(true);
+            return;
+        }
+
         const petToUpdate = {
             id: selectedPetId,
             name: petData.name,
@@ -390,6 +387,7 @@ const ManagePets = () => {
                         onChange={handleInputChange}
                         required
                         margin="dense"
+                        inputProps={{ min: 0, max: 50000 }} 
                     />
                 </DialogContent>
                 <DialogActions>
@@ -413,6 +411,7 @@ const ManagePets = () => {
                         onChange={(e) => handleSelectPet(e.target.value)} 
                         required
                         fullWidth
+                         margin="dense"
                     >
                         <MenuItem value="">
                             <em>Select a pet</em>
@@ -493,6 +492,7 @@ const ManagePets = () => {
                         onChange={handleInputChange}
                         required
                         margin="dense"
+                        inputProps={{ min: 0, max: 50000 }} 
                     />
                 </DialogContent>
                 <DialogActions>
