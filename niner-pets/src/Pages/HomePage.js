@@ -1,30 +1,53 @@
 import { Box, Button, CircularProgress, Grid, Paper, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react'; // Import useEffect and useState
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function HomePage() {
-  const [vets, setVets] = useState([]); 
+  const [vets, setVets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState('User');
 
   useEffect(() => {
     const fetchVets = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/vets'); 
+        const response = await fetch('http://localhost:5000/vets');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        setVets(data); 
+        setVets(data);
       } catch (error) {
         console.error('Error fetching vets:', error);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
-    fetchVets(); 
-  }, []); 
+    fetchVets();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/get_username', {
+          method: 'GET',
+          credentials: 'include',  // Include credentials (session cookie)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch username');
+        }
+
+        const data = await response.json();
+        setUsername(data.username);  // Set the fetched username in state
+      } catch (error) {
+        console.error('Error fetching username:', error);
+      }
+    };
+
+    fetchUsername();  // Fetch username when the component loads
+  }, []);
 
   return (
     <div className="app-background">
@@ -35,7 +58,7 @@ function HomePage() {
           <Grid item xs={12}>
             <Paper elevation={3} sx={{ padding: 2, minHeight: '110px', minWidth: '1100px'}}>
               <Typography variant="h5" gutterBottom>
-                <strong>Welcome, User!</strong>
+                <strong>Welcome, {username}!</strong>  {/* Display fetched username */}
               </Typography>
               <Grid container spacing={2}>
                 <Grid item>
@@ -46,6 +69,12 @@ function HomePage() {
                 </Grid>
                 <Grid item>
                   <Button variant="contained" component={Link} to="/billing">Billing Summary</Button>
+                </Grid>
+                <Grid item>
+                  <Button variant="contained" component={Link} to="/manage-pets">Manage Pets</Button>
+                </Grid>
+                <Grid item>
+                  <Button variant="contained" component={Link} to="/medicalrecords">Medical Records</Button>
                 </Grid>
                 <Grid item>
                   <Button variant="contained" component={Link} to="/calendar">Calendar</Button>

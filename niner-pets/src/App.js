@@ -11,6 +11,9 @@ import Vets from './Pages/Vets';
 import Medications from './Pages/Medications';
 import Appointments from './Pages/Appointments';
 import Calendar from './Pages/calendar';
+import ManagePets from './Pages/ManagePets';
+import Profile from './Pages/Profile';
+import MedicalRecords from './Pages/MedicalRecords'
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -91,6 +94,14 @@ function App() {
 
         {/* Calendar page*/}
         <Route path="/Calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+        {/* Appointments page*/}
+        <Route path="/manage-pets" element={<ProtectedRoute><ManagePets /></ProtectedRoute>} />
+
+        {/* Profile page*/}
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+        {/* MedicalRecords*/}
+        <Route path="/medicalrecords" element={<ProtectedRoute><MedicalRecords /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );

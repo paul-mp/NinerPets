@@ -11,18 +11,21 @@ const LoginPage = ({ onLoginSuccess }) => {
 
   const handleLogin = async (event) => {
     event.preventDefault();
-
+  
     try {
       const response = await fetch("http://127.0.0.1:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }), // Send email and password
+        body: JSON.stringify({
+          email_or_username: email,  // Can be either email or username
+          password: password,
+        }), // Send email/username and password
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         // Login successful
         setErrorMessage("");
@@ -36,6 +39,7 @@ const LoginPage = ({ onLoginSuccess }) => {
       setErrorMessage("An error occurred during login");
     }
   };
+  
 
   const handleNavigateToRegister = () => {
     navigate("/register"); // Navigate to the register page
@@ -70,7 +74,7 @@ const LoginPage = ({ onLoginSuccess }) => {
             required
             fullWidth
             id="email"
-            label="Email"
+            label="Email or Username"
             name="email"
             autoComplete="email"
             autoFocus
@@ -106,7 +110,6 @@ const LoginPage = ({ onLoginSuccess }) => {
             Login
           </Button>
 
-          {/* Add the Register button here */}
           <Button
             onClick={handleNavigateToRegister}
             variant="outlined"
