@@ -12,6 +12,7 @@ import Medications from './Pages/Medications';
 import Appointments from './Pages/Appointments';
 import ManagePets from './Pages/ManagePets';
 import Profile from './Pages/Profile';
+import MedicalRecords from './Pages/MedicalRecords'
 import './Styles/App.css';
 
 // Custom theme for buttons
@@ -95,6 +96,9 @@ function App() {
 
         {/* Profile page*/}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+        {/* MedicalRecords*/}
+        <Route path="/medicalrecords" element={<ProtectedRoute><MedicalRecords /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );
