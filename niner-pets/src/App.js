@@ -13,6 +13,7 @@ import Appointments from './Pages/Appointments';
 import ManagePets from './Pages/ManagePets';
 import Profile from './Pages/Profile';
 import './Styles/App.css';
+import FAQ from './Pages/Faq';
 
 // Custom theme for buttons
 const theme = createTheme({
@@ -95,6 +96,9 @@ function App() {
 
         {/* Profile page*/}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+        {/* FAQ page*/}
+        <Route path="/faq" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );
