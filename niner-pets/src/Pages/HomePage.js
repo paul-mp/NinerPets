@@ -73,6 +73,9 @@ function HomePage() {
                 <Grid item>
                   <Button variant="contained" component={Link} to="/manage-pets">Manage Pets</Button>
                 </Grid>
+                <Grid item>
+                  <Button variant="contained" component={Link} to="/medicalrecords">Medical Records</Button>
+                </Grid>
               </Grid>
             </Paper>
           </Grid>
