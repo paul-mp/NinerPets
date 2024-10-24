@@ -293,13 +293,13 @@ function CalendarPage() {
       {loading ? (
         <CircularProgress />
       ) : (
-        <FullCalendar
-          plugins={[dayGridPlugin, googleCalendarPlugin]}
-          initialView="dayGridMonth"
-          events={events}
-          // Scale down the calendar by applying a CSS transform
-          style={{ width: '400px', height: '250px' }}        
-        />
+        <Box sx={{ width: '1450px', height: '968px', overflow: 'hidden' }}>
+          <FullCalendar
+            plugins={[dayGridPlugin, googleCalendarPlugin]}
+            initialView="dayGridMonth"
+            events={events}
+          />
+        </Box>
       )}
 
       {/* Add Event Dialog */}
