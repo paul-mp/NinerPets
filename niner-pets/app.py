@@ -165,7 +165,6 @@ def delete_pet(pet_id):
     pet = Pet.query.get(pet_id)
     if pet is None:
         return jsonify({'message': 'Pet not found'}), 404
-
     db.session.delete(pet)
     db.session.commit()
     return jsonify({'message': 'Pet deleted successfully'}), 200
