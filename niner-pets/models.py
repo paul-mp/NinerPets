@@ -55,3 +55,38 @@ class Pet(db.Model):
             'dob': self.dob.isoformat(),
             'weight': float(self.weight),
         }
+
+class Medication(db.Model):
+    __tablename__ = 'medications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    pet_id = db.Column(db.Integer, db.ForeignKey('pets.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    dosage = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    side_effects = db.Column(db.Text, nullable=True)
+    instructions = db.Column(db.Text, nullable=True)
+    refill = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    pet = db.relationship('Pet', backref=db.backref('medications', lazy=True))
+    user = db.relationship('User', backref=db.backref('medications', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'pet_id': self.pet_id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'dosage': self.dosage,
+            'description': self.description,
+            'start_date': self.start_date.isoformat(),
+            'end_date': 'Ongoing' if self.end_date is None else self.end_date.isoformat(),
+            'side_effects': self.side_effects,
+            'instructions': self.instructions,
+            'refill': self.refill,
+            'created_at': self.created_at.isoformat(),
+        }
