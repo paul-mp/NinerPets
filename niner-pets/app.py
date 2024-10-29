@@ -1,8 +1,9 @@
 import os
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from models import db, User, Vet, Pet  # Import the db and models
+from models import db, User, Vet, Pet, Medication  # Import the db and models
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -24,6 +25,14 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_cred
 # Set session cookie settings
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # For cross-origin session cookies
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS, False otherwise (especially on localhost)
+
+def get_medications_by_user_id(user_id, db):
+    return (
+        db.session.query(Medication, Pet.name.label("pet_name"))  # Use label to name pet_name
+        .join(Pet, Medication.pet_id == Pet.id)  # Join on pet_id to get pet name
+        .filter(Medication.user_id == user_id)
+        .all()
+    )
 
 # Define routes
 @app.route('/')
@@ -163,11 +172,141 @@ def update_pet(pet_id):
 @app.route('/pets/<int:pet_id>', methods=['DELETE'])
 def delete_pet(pet_id):
     pet = Pet.query.get(pet_id)
-    if pet is None:
+    if not pet:
         return jsonify({'message': 'Pet not found'}), 404
+
+    medications = Medication.query.filter_by(pet_id=pet_id).all()
+    for med in medications:
+        db.session.delete(med)
+
     db.session.delete(pet)
     db.session.commit()
-    return jsonify({'message': 'Pet deleted successfully'}), 200
+    return jsonify({'message': 'Pet and associated medications deleted successfully'}), 200
+
+@app.route('/medications', methods=['POST'])
+def add_medication():
+    data = request.json
+    pet_id = data.get('pet_id')
+    user_id = data.get('user_id')
+    name = data.get('name')
+    dosage = data.get('dosage')
+    description = data.get('description')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    side_effects = data.get('side_effects')
+    instructions = data.get('instructions')
+    refill = data.get('refill', False)
+
+    if not all([pet_id, user_id, name, dosage, start_date]):
+        return jsonify({'error': 'All fields except end date are required.'}), 400
+    
+    if end_date:
+        try:
+            start_date_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date_dt = datetime.strptime(end_date, '%Y-%m-%d')
+            if end_date_dt < start_date_dt:
+                return jsonify({'error': 'End date cannot be before start date.'}), 400
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
+
+    new_medication = Medication(
+        pet_id=pet_id,
+        user_id=user_id,
+        name=name,
+        dosage=dosage,
+        description=description,
+        start_date=start_date,
+        end_date=end_date,
+        side_effects=side_effects,
+        instructions=instructions,
+        refill=refill
+    )
+    
+    db.session.add(new_medication)
+    db.session.commit()
+
+    return jsonify({'message': 'Medication added successfully'}), 201
+
+@app.route('/medications', methods=['GET'])
+def get_medications():
+    user_id = request.args.get('user_id', type=int)  
+    if user_id is None:
+        return jsonify({"error": "user_id is required"}), 400
+
+    medications = get_medications_by_user_id(user_id, db)  
+    response = [
+        {
+            **medication.to_dict(),  
+            "pet_name": pet_name  
+        }
+        for medication, pet_name in medications
+    ]
+
+    return jsonify(response)  
+
+@app.route('/medications/<int:medication_id>', methods=['DELETE'])
+def delete_medication(medication_id):
+    medication = Medication.query.get(medication_id)
+    if medication is None:
+        return jsonify({'message': 'Medication not found'}), 404
+    db.session.delete(medication)
+    db.session.commit()
+    return jsonify({'message': 'Medication deleted successfully'}), 200
+
+@app.route('/medications/<int:medication_id>', methods=['PUT'])
+def update_medication(medication_id):
+    data = request.json
+    print("Updating medication with ID:", medication_id)
+    print("Received data:", data)
+
+    medication = Medication.query.get_or_404(medication_id)
+
+    print("Current medication state before update:", {
+        'name': medication.name,
+        'dosage': medication.dosage,
+        'description': medication.description,
+        'start_date': medication.start_date,
+        'end_date': medication.end_date,
+        'side_effects': medication.side_effects,
+        'instructions': medication.instructions,
+        'refill': medication.refill,
+        'pet_id': medication.pet_id,
+    })
+
+    medication.name = data['name']
+    medication.dosage = data['dosage']
+    medication.description = data['description']
+    medication.start_date = data['start_date']
+    medication.pet_id = data['pet_id']
+    
+    end_date_input = data.get('end_date')
+    medication.end_date = None if end_date_input == "Ongoing" else end_date_input
+
+    medication.side_effects = data['side_effects']
+    medication.instructions = data['instructions']
+    medication.refill = data['refill']
+
+    if medication.start_date:
+        try:
+            start_date_dt = datetime.strptime(medication.start_date, '%Y-%m-%d')
+            if medication.end_date:  
+                end_date_dt = datetime.strptime(medication.end_date, '%Y-%m-%d')
+                if end_date_dt < start_date_dt:
+                    return jsonify({'error': 'End date cannot be before start date.'}), 400
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
+
+    db.session.commit()
+    return jsonify({'message': 'Medication updated successfully'}), 200
+
+@app.route('/pets/<int:pet_id>', methods=['GET'])
+def get_pet(pet_id):
+    print(f"Fetching pet with ID: {pet_id}")  # Debug statement
+    pet = Pet.query.get(pet_id)
+    if pet is None:
+        print(f"Pet with ID {pet_id} not found.")  # Debug statement
+        return jsonify({'error': 'Pet not found'}), 404
+    return jsonify(pet.to_dict()), 200
 
 if __name__ == '__main__':
     with app.app_context():
