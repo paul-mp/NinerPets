@@ -77,7 +77,7 @@ function HomePage() {
                   <Button variant="contained" component={Link} to="/medicalrecords">Medical Records</Button>
                 </Grid>
                 <Grid item>
-                  <Button variant="contained" component={Link} to="/faq">FAQ Pages</Button>
+                  <Button variant="contained" component={Link} to="/faq">FAQ</Button>
                 </Grid>
               </Grid>
             </Paper>

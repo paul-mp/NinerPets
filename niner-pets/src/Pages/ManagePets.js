@@ -17,7 +17,8 @@ import {
     Snackbar,
     CircularProgress
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 const ManagePets = () => {
     const [loading, setLoading] = useState(true);
@@ -42,13 +43,12 @@ const ManagePets = () => {
     const [petToDelete, setPetToDelete] = useState(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false); 
     const [snackbarMessage, setSnackbarMessage] = useState(''); 
-    const userId = "1"; 
+    const userId = "13"; 
 
     useEffect(() => {
         fetchPets();
     }, []);
 
-    
     const fetchPets = () => {
         fetch(`http://localhost:5000/pets?user_id=${userId}`)
             .then(response => {
@@ -69,7 +69,6 @@ const ManagePets = () => {
     };
 
     const handleSubmit = () => {
-        // Validate that all required fields are filled
         if (!petData.name || !petData.species || !petData.breed || !petData.dob || !petData.weight) {
             setSnackbarMessage('Please fill out all required fields.');
             setSnackbarOpen(true);
@@ -111,7 +110,6 @@ const ManagePets = () => {
     };
 
     const handleDeleteClick = (petId) => {
-        console.log(`Delete button clicked for pet ID: ${petId}`);
         setPetToDelete(petId);
         setConfirmDelete(true);
     };
@@ -215,9 +213,33 @@ const ManagePets = () => {
         }
     };
 
+    const handleOpenEditPet = () => {
+        if (!selectedPetId) {
+            setSnackbarMessage('Please select a pet to edit.');
+            setSnackbarOpen(true);
+            return;
+        }
+        setOpenEditPet(true);
+    };
+
+    const handleEditIconClick = (petId) => {
+        const petToEdit = pets.find(pet => pet.id === petId);
+        if (petToEdit) {
+            setPetData({
+                name: petToEdit.name,
+                species: petToEdit.species,
+                otherSpecies: petToEdit.species === 'Other' ? petToEdit.otherSpecies : '',
+                breed: petToEdit.breed,
+                dob: petToEdit.dob,
+                weight: petToEdit.weight
+            });
+            setSelectedPetId(petId); 
+            setOpenEditPet(true); 
+        }
+    };
+
     return (
         <Box sx={{ flexGrow: 1, padding: 2, minHeight: '100vh', backgroundColor: '#f0f0f0' }}>
-            {/* Header Box */}
             <Box 
                 sx={{ 
                     padding: '10px', 
@@ -239,296 +261,224 @@ const ManagePets = () => {
                 </Typography>
             </Box>
 
-            {/* Buttons in Separate Boxes */}
             <Grid container spacing={2}>
-                <Grid item xs={6}>
-                    <Box 
+                <Grid item xs={12}> 
+                    <Button 
+                        variant="contained" 
+                        color="success" 
+                        onClick={() => setOpenAddPet(true)} 
+                        fullWidth
                         sx={{ 
+                            backgroundColor: 'primary.main',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
                             padding: '10px', 
-                            boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)', 
-                            borderRadius: '6px', 
-                            backgroundColor: '#ffffff' 
                         }}
                     >
-                        <Button 
-                            variant="contained" 
-                            color="primary" 
-                            onClick={() => setOpenAddPet(true)} 
-                            fullWidth
-                        >
-                            Add a Pet
-                        </Button>
-                    </Box>
-                </Grid>
-                <Grid item xs={6}>
-                    <Box 
-                        sx={{ 
-                            padding: '10px', 
-                            boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)', 
-                            borderRadius: '6px', 
-                            backgroundColor: '#ffffff' 
-                        }}
-                    >
-                        <Button 
-                            variant="contained" 
-                            color="secondary" 
-                            fullWidth
-                            onClick={() => setOpenEditPet(true)} 
-                        >
-                            Edit Pet
-                        </Button>
-                    </Box>
+                        Add a Pet
+                    </Button>
                 </Grid>
             </Grid>
 
-            {/* Added Pets List */}
-            <Box sx={{ marginTop: '20px' }}>
+            <Box mt={2}>
                 {loading ? (
-                    <CircularProgress /> 
+                    <CircularProgress />
+                ) : pets.length === 0 ? (
+                    <Typography variant="h6" align="center" sx={{ marginTop: 4, color: 'gray' }}>
+                        No pets found. Click "Add a Pet" to get started!
+                    </Typography>
                 ) : (
-                pets.length > 0 ? (
-                    pets.map(pet => (
-                        <Card 
-                            key={pet.id} 
-                            sx={{ marginBottom: '10px', backgroundColor: '#ffffff', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.2)' }}
-                        >
+                    pets.map((pet) => (
+                        <Card key={pet.id} variant="outlined" style={{ marginBottom: '10px', position: 'relative', boxShadow: 10 }}>
                             <CardContent>
                                 <Typography variant="h6">{pet.name}</Typography>
+                                <Divider style={{ margin: '8px 0' }} />
                                 <Typography variant="body2">Species: {pet.species}</Typography>
                                 <Typography variant="body2">Breed: {pet.breed}</Typography>
-                                <Typography variant="body2">DOB: {pet.dob}</Typography>
+                                <Typography variant="body2">Date of Birth: {pet.dob}</Typography>
                                 <Typography variant="body2">Weight: {pet.weight} lbs</Typography>
-                            </CardContent>
-                            <Divider />
-                            <CardContent sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <IconButton color="primary" onClick={() => handleDeleteClick(pet.id)}>
-                                    <CloseIcon />
-                                </IconButton>
+                                <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+                                    <IconButton
+                                        onClick={() => handleEditIconClick(pet.id)}  
+                                    >
+                                        <EditIcon />
+                                    </IconButton>
+                                    <IconButton
+                                        onClick={() => handleDeleteClick(pet.id)} 
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </div>
                             </CardContent>
                         </Card>
                     ))
-            ) : (
-                <Typography>No pets added yet.</Typography>
-            )
-        )}
+                )}
             </Box>
 
-            {/* Add Pet Dialog */}
-            <Dialog open={openAddPet} onClose={() => setOpenAddPet(false)}>
-                <DialogTitle>Add a New Pet</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        label="Name"
-                        type="text"
-                        fullWidth
-                        name="name"
-                        value={petData.name}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                    />
-                    <TextField
-                        select
-                        label="Species"
-                        name="species"
-                        value={petData.species}
-                        onChange={handleInputChange}
-                        required
-                        fullWidth
-                        margin="dense"
-                    >
-                        {speciesOptions.map(species => (
-                            <MenuItem key={species} value={species}>
-                                {species}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    {petData.species === 'Other' && (
-                        <TextField
-                            label="Other Species"
-                            type="text"
-                            fullWidth
-                            name="otherSpecies"
-                            value={petData.otherSpecies}
-                            onChange={handleInputChange}
-                            required
-                            margin="dense"
-                        />
-                    )}
-                    <TextField
-                        label="Breed"
-                        type="text"
-                        fullWidth
-                        name="breed"
-                        value={petData.breed}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                    />
-                    <TextField
-                        label="Date of Birth"
-                        type="date"
-                        fullWidth
-                        name="dob"
-                        value={petData.dob}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <TextField
-                        label="Weight (lbs)"
-                        type="number"
-                        fullWidth
-                        name="weight"
-                        value={petData.weight}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                        inputProps={{ min: 0, max: 50000 }} 
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenAddPet(false)} color="primary">Cancel</Button>
-                    <Button onClick={handleSubmit} color="primary">Add Pet</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Edit Pet Dialog */}
-            <Dialog
-                open={openEditPet}
-                onClose={() => setOpenEditPet(false)}
-                fullWidth
-            >
-                <DialogTitle>Edit Pet</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        select
-                        label="Select Pet"
-                        value={selectedPetId}
-                        onChange={(e) => handleSelectPet(e.target.value)} 
-                        required
-                        fullWidth
-                         margin="dense"
-                    >
-                        <MenuItem value="">
-                            <em>Select a pet</em>
-                        </MenuItem>
-                        {pets.map(pet => (
-                            <MenuItem key={pet.id} value={pet.id}>
-                                {pet.name}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    <TextField
-                        label="Name"
-                        type="text"
-                        fullWidth
-                        name="name"
-                        value={petData.name}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                    />
-                    <TextField
-                        select
-                        label="Species"
-                        name="species"
-                        value={petData.species}
-                        onChange={handleInputChange}
-                        required
-                        fullWidth
-                        margin="dense"
-                    >
-                        {speciesOptions.map(species => (
-                            <MenuItem key={species} value={species}>
-                                {species}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    {petData.species === 'Other' && (
-                        <TextField
-                            label="Other Species"
-                            type="text"
-                            fullWidth
-                            name="otherSpecies"
-                            value={petData.otherSpecies}
-                            onChange={handleInputChange}
-                            required
-                            margin="dense"
-                        />
-                    )}
-                    <TextField
-                        label="Breed"
-                        type="text"
-                        fullWidth
-                        name="breed"
-                        value={petData.breed}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                    />
-                    <TextField
-                        label="Date of Birth"
-                        type="date"
-                        fullWidth
-                        name="dob"
-                        value={petData.dob}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <TextField
-                        label="Weight (lbs)"
-                        type="number"
-                        fullWidth
-                        name="weight"
-                        value={petData.weight}
-                        onChange={handleInputChange}
-                        required
-                        margin="dense"
-                        inputProps={{ min: 0, max: 50000 }} 
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenEditPet(false)} color="primary">Cancel</Button>
-                    <Button onClick={handleUpdatePet} color="primary">Update Pet</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Snackbar for Notifications */}
-            <Snackbar 
-                open={snackbarOpen} 
-                autoHideDuration={6000} 
-                onClose={handleCloseSnackbar} 
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
                 message={snackbarMessage}
             />
 
-            {/* Confirm Delete Dialog */}
+            <Dialog open={openAddPet} onClose={() => setOpenAddPet(false)}>
+                <DialogTitle>Add a Pet</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        name="name"
+                        label="Name"
+                        fullWidth
+                        value={petData.name}
+                        onChange={handleInputChange}
+                    />
+                    <TextField
+                        select
+                        margin="dense"
+                        name="species"
+                        label="Species"
+                        fullWidth
+                        value={petData.species}
+                        onChange={handleInputChange}
+                    >
+                        {speciesOptions.map(option => (
+                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                        ))}
+                    </TextField>
+                    {petData.species === 'Other' && (
+                        <TextField
+                            margin="dense"
+                            name="otherSpecies"
+                            label="Other Species"
+                            fullWidth
+                            value={petData.otherSpecies}
+                            onChange={handleInputChange}
+                        />
+                    )}
+                    <TextField
+                        margin="dense"
+                        name="breed"
+                        label="Breed"
+                        fullWidth
+                        value={petData.breed}
+                        onChange={handleInputChange}
+                    />
+                    <TextField
+                        margin="dense"
+                        name="dob"
+                        label="Date of Birth"
+                        type="date"
+                        fullWidth
+                        InputLabelProps={{ shrink: true }}
+                        value={petData.dob}
+                        onChange={handleInputChange}
+                    />
+                    <TextField
+                        margin="dense"
+                        name="weight"
+                        label="Weight (lbs)"
+                        type="number"
+                        fullWidth
+                        value={petData.weight}
+                        onChange={handleInputChange}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenAddPet(false)}>Cancel</Button>
+                    <Button onClick={handleSubmit}>Add Pet</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={openEditPet} onClose={() => setOpenEditPet(false)}>
+                <DialogTitle>Edit Pet</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        name="name"
+                        label="Name"
+                        fullWidth
+                        value={petData.name}
+                        onChange={handleInputChange}
+                    />
+                    <TextField
+                        select
+                        margin="dense"
+                        name="species"
+                        label="Species"
+                        fullWidth
+                        value={petData.species}
+                        onChange={handleInputChange}
+                    >
+                        {speciesOptions.map(option => (
+                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                        ))}
+                    </TextField>
+                    {petData.species === 'Other' && (
+                        <TextField
+                            margin="dense"
+                            name="otherSpecies"
+                            label="Other Species"
+                            fullWidth
+                            value={petData.otherSpecies}
+                            onChange={handleInputChange}
+                        />
+                    )}
+                    <TextField
+                        margin="dense"
+                        name="breed"
+                        label="Breed"
+                        fullWidth
+                        value={petData.breed}
+                        onChange={handleInputChange}
+                    />
+                    <TextField
+                        margin="dense"
+                        name="dob"
+                        label="Date of Birth"
+                        type="date"
+                        fullWidth
+                        InputLabelProps={{ shrink: true }}
+                        value={petData.dob}
+                        onChange={handleInputChange}
+                    />
+                    <TextField
+                        margin="dense"
+                        name="weight"
+                        label="Weight (lbs)"
+                        type="number"
+                        fullWidth
+                        value={petData.weight}
+                        onChange={handleInputChange}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenEditPet(false)}>Cancel</Button>
+                    <Button onClick={handleUpdatePet}>Update Pet</Button>
+                </DialogActions>
+            </Dialog>
+
             <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
                 <DialogTitle>Confirm Delete</DialogTitle>
                 <DialogContent>
                     <Typography>Are you sure you want to delete this pet?</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirmDelete(false)} color="primary">Cancel</Button>
-                    <Button onClick={handleConfirmDelete} color="primary">Delete</Button>
+                    <Button onClick={() => setConfirmDelete(false)}>Cancel</Button>
+                    <Button onClick={handleConfirmDelete}>Delete</Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Success Dialog for Adding/Updating Pets */}
             <Dialog open={openSuccessDialog} onClose={() => setOpenSuccessDialog(false)}>
                 <DialogTitle>Success</DialogTitle>
                 <DialogContent>
                     <Typography>{successMessage}</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenSuccessDialog(false)} color="primary">Close</Button>
+                    <Button onClick={() => setOpenSuccessDialog(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
         </Box>
