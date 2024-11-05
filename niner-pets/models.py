@@ -1,6 +1,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import CheckConstraint
 
 db = SQLAlchemy()
 
@@ -88,5 +89,32 @@ class Medication(db.Model):
             'side_effects': self.side_effects,
             'instructions': self.instructions,
             'refill': self.refill,
+            'created_at': self.created_at.isoformat(),
+        }
+    
+class Billing(db.Model):
+    __tablename__ = 'billing'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    pet_id = db.Column(db.Integer, db.ForeignKey('pets.id'), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    price = db.Column(db.Float, nullable=False)  
+    description = db.Column(db.Text, nullable=True)
+    date = db.Column(db.Date, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    user = db.relationship('User', backref=db.backref('billings', lazy=True))
+    pet = db.relationship('Pet', backref=db.backref('billings', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'pet_id': self.pet_id,
+            'type': self.type,
+            'price': float(self.price),
+            'description': self.description,
+            'date': self.date.isoformat(),
             'created_at': self.created_at.isoformat(),
         }

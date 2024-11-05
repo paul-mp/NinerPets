@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from models import db, User, Vet, Pet, Medication  # Import the db and models
+from models import db, User, Vet, Pet, Medication, Billing  # Import the db and models
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -179,6 +179,10 @@ def delete_pet(pet_id):
     for med in medications:
         db.session.delete(med)
 
+    billing_entries = Billing.query.filter_by(pet_id=pet_id).all()
+    for billing in billing_entries:
+        db.session.delete(billing)
+
     db.session.delete(pet)
     db.session.commit()
     return jsonify({'message': 'Pet and associated medications deleted successfully'}), 200
@@ -301,12 +305,125 @@ def update_medication(medication_id):
 
 @app.route('/pets/<int:pet_id>', methods=['GET'])
 def get_pet(pet_id):
-    print(f"Fetching pet with ID: {pet_id}")  # Debug statement
+    print(f"Fetching pet with ID: {pet_id}")  
     pet = Pet.query.get(pet_id)
     if pet is None:
-        print(f"Pet with ID {pet_id} not found.")  # Debug statement
+        print(f"Pet with ID {pet_id} not found.")  
         return jsonify({'error': 'Pet not found'}), 404
     return jsonify(pet.to_dict()), 200
+
+@app.route('/billing', methods=['POST'])
+def add_billing():
+    data = request.json
+    user_id = data.get('user_id')
+    pet_id = data.get('pet_id')
+    billing_type = data.get('type')
+    price = data.get('price')
+    description = data.get('description')
+    date = data.get('date')
+
+    if not all([pet_id, billing_type, price, description, user_id]):
+        return jsonify({'error': 'All fields are required.'}), 400
+
+    # Retrieve the pet name from the database
+    pet = Pet.query.filter_by(id=pet_id).first()
+    if not pet:
+        return jsonify({'error': 'Pet not found.'}), 404
+
+    # Create new billing entry
+    new_billing = Billing(
+        user_id=user_id,
+        pet_id=pet_id,
+        type=billing_type,
+        price=price,
+        description=description,
+        date=date,
+        created_at=datetime.utcnow()
+    )
+
+    db.session.add(new_billing)
+    db.session.commit()
+
+    # Prepare the response data, including pet name
+    response_data = {
+        'id': new_billing.id,
+        'user_id': new_billing.user_id,
+        'pet_id': new_billing.pet_id,
+        'type': new_billing.type,
+        'price': new_billing.price,
+        'description': new_billing.description,
+        'date': new_billing.date,
+        'created_at': new_billing.created_at.isoformat(),
+        'pet_name': pet.name  # Include pet name in the response
+    }
+
+    print(f"Billing added: {new_billing}")  
+    return jsonify(response_data), 201
+
+@app.route('/billing', methods=['GET'])
+def get_billing():
+    user_id = request.args.get('user_id')
+    billing_entries = Billing.query.filter_by(user_id=user_id).all()
+    
+    results = [{
+        'id': entry.id,
+        'user_id': entry.user_id,
+        'pet_id': entry.pet_id,
+        'type': entry.type,
+        'price': entry.price,
+        'description': entry.description,
+        'date': entry.date.strftime('%Y-%m-%d'),  
+        'pet_name': entry.pet.name  
+    } for entry in billing_entries]
+
+    return jsonify(results)
+
+@app.route('/billing/<int:billing_id>', methods=['DELETE'])
+def delete_billing(billing_id):
+    billing_entry = Billing.query.get(billing_id)
+    if billing_entry is None:
+        return jsonify({'message': 'Billing entry not found'}), 404
+
+    db.session.delete(billing_entry)
+    db.session.commit()
+
+    return jsonify({'message': 'Billing entry deleted successfully'}), 200
+
+@app.route('/billing/<int:billing_id>', methods=['PUT'])
+def update_billing(billing_id):
+    data = request.json
+    print("Updating billing entry with ID:", billing_id)
+    print("Received data:", data)
+
+    billing_entry = Billing.query.get_or_404(billing_id)
+
+    # Update billing entry fields
+    billing_entry.pet_id = data.get('pet_id', billing_entry.pet_id)  # Use existing if not provided
+    billing_entry.type = data['type']  # Assuming 'type' is required
+    billing_entry.price = data['price']  # Assuming 'price' is required
+    billing_entry.description = data['description']  # Assuming 'description' is required
+    billing_entry.date = data['date']  # Assuming 'date' is required
+
+    # Additional logic to validate or transform data could go here
+
+    # Commit changes to the database
+    db.session.commit()
+
+    # Prepare and return the response data
+    response_data = {
+        'id': billing_entry.id,
+        'user_id': billing_entry.user_id,
+        'pet_id': billing_entry.pet_id,
+        'type': billing_entry.type,
+        'price': billing_entry.price,
+        'description': billing_entry.description,
+        'date': billing_entry.date.strftime('%Y-%m-%d'),  # Format date
+        'pet_name': billing_entry.pet.name  # Include pet name in the response
+    }
+
+    print(f"Billing updated: {response_data}")  
+    return jsonify({'message': 'Billing entry updated successfully', 'billing': response_data}), 200
+
 
 if __name__ == '__main__':
     with app.app_context():
