@@ -4,6 +4,7 @@ from flask_cors import CORS
 from models import db, User, Vet, Pet, Medication, Billing  # Import the db and models
 from dotenv import load_dotenv
 from datetime import datetime
+from flask_jwt_extended import create_access_token, JWTManager
 
 load_dotenv()
 
@@ -11,6 +12,12 @@ app = Flask(__name__)
 
 # Set up secret key for session management
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey')  # Use a secret key for securely signing the session cookies
+
+# Configure JWT
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'anothersecretkey')  # Set a secret key for JWT
+
+# Initialize JWTManager
+jwt = JWTManager(app)
 
 # Configure database connection
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -54,8 +61,8 @@ def login():
         # Set session variables
         session['user_id'] = user.id
         session['username'] = user.username  # Make sure this exists
-        print(f"Session set for user {user.username}")
-        return jsonify({'message': 'Login successful'}), 200
+        access_token = create_access_token(identity=user.id)
+        return jsonify({'message': 'Login successful', 'token': access_token}), 200
     else:
         print(f"Login failed for user: {email_or_username}")
         return jsonify({'error': 'Invalid credentials'}), 401
