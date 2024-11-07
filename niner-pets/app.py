@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from models import db, User, Vet, Pet, Medication, Billing  # Import the db and models
+from models import db, User, Vet, Pet, Medication, Billing, Appointment # Import the db and models
 from dotenv import load_dotenv
 from datetime import datetime
 from flask_jwt_extended import create_access_token, JWTManager
@@ -431,6 +431,48 @@ def update_billing(billing_id):
     print(f"Billing updated: {response_data}")  
     return jsonify({'message': 'Billing entry updated successfully', 'billing': response_data}), 200
 
+@app.route('/appointments', methods=['POST'])
+def add_appointment():
+    data = request.json
+    user_id = data.get('user_id')
+    pet_id = data.get('pet_id')
+    vet_id = data.get('vet_id')  # This now corresponds to the vet's ID from the frontend
+    reason = data.get('reason')
+    date = data.get('date')
+    time = data.get('time')
+    location = data.get('location')
+    notes = data.get('notes')
+
+    if not all([user_id, pet_id, vet_id, reason, date, time, location]):
+        return jsonify({'error': 'All fields are required.'}), 400
+
+    # Optional: Validate the date and time format
+    try:
+        datetime.strptime(date, '%Y-%m-%d')  # Validate date in 'YYYY-MM-DD' format
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    try:
+        datetime.strptime(time, '%H:%M')  # Validate time in 'HH:MM' format
+    except ValueError:
+        return jsonify({'error': 'Invalid time format. Use HH:MM.'}), 400
+
+    # Create new appointment entry
+    new_appointment = Appointment(
+        user_id=user_id,
+        pet_id=pet_id,
+        vet_id=vet_id,
+        reason=reason,
+        date=date,
+        time=time,
+        location=location,
+        notes=notes
+    )
+
+    db.session.add(new_appointment)
+    db.session.commit()
+
+    return jsonify({'message': 'Appointment added successfully'}), 201
 
 if __name__ == '__main__':
     with app.app_context():
