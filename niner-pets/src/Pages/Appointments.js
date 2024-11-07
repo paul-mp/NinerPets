@@ -12,12 +12,27 @@ const visitReasons = [
 ];
 
 function Appointments() {
+  const userId = 13;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVet, setSelectedVet] = useState('');
+  const [selectedPet, setSelectedPet] = useState('');
   const [selectedReason, setSelectedReason] = useState('');
-  const [vets, setVets] = useState([]); 
-  const [error, setError] = useState(''); 
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [notes, setNotes] = useState('');
+  const [vets, setVets] = useState([]);
+  const [otherReasonExplanation, setOtherReasonExplanation] = useState('');
+  const [pets, setPets] = useState([]); 
+  const [error, setError] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+
+  const handlePetChange = (e) => setSelectedPet(e.target.value);
+  const handleVetChange = (e) => setSelectedVet(e.target.value);
+  const handleReasonChange = (e) => setSelectedReason(e.target.value);
+  const handleDateChange = (e) => setSelectedDate(e.target.value);
+  const handleTimeChange = (e) => setSelectedTime(e.target.value);
+  const handleLocationChange = (e) => setSelectedLocation(e.target.value);
 
   useEffect(() => {
     const fetchVets = async () => {
@@ -33,23 +48,72 @@ function Appointments() {
       }
     };
 
+    const fetchPets = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/pets?user_id=13'); // Assuming an API for fetching pets by user ID
+        if (!response.ok) {
+          throw new Error('Failed to fetch pets');
+        }
+        const data = await response.json();
+        setPets(data);
+      } catch (error) {
+        setError('Error fetching pet data: ' + error.message);
+      }
+    };
+
     fetchVets();
+    fetchPets();
   }, []);
+
+  const handleScheduleAppointment = async (event) => {
+    event.preventDefault();
+
+    const selectedVetObj = vets.find(vet => vet.name === selectedVet);
+    const vetId = selectedVetObj ? selectedVetObj.id : null;
+
+    const appointmentData = {
+      user_id: userId,
+      pet_id: selectedPet,
+      vet_id: vetId,
+      reason: selectedReason,
+      date: selectedDate,
+      time: selectedTime,
+      location: selectedLocation,
+      notes: notes,
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to schedule appointment');
+      }
+
+      setOpenSnackbar(true); 
+      setError('');  
+
+      setSelectedPet('');
+      setSelectedVet('');
+      setSelectedReason('');
+      setSelectedDate('');
+      setSelectedTime('');
+      setSelectedLocation('');
+      setNotes('');
+      setOtherReasonExplanation('');
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Error scheduling appointment: ' + error.message); 
+    }
+  };
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
-  };
-
-  const handleVetChange = (event) => {
-    setSelectedVet(event.target.value);
-  };
-
-  const handleReasonChange = (event) => {
-    setSelectedReason(event.target.value);
-  };
-
-  const handleScheduleAppointment = () => {
-    setOpenSnackbar(true);
   };
 
   const handleCloseSnackbar = () => {
@@ -114,25 +178,28 @@ function Appointments() {
                 <Typography variant="h6" gutterBottom>
                   Create an Appointment
                 </Typography>
-                <form onSubmit={(e) => { e.preventDefault(); handleScheduleAppointment(); }}>
+                <form onSubmit={handleScheduleAppointment}>
                   <TextField
                     select
                     fullWidth
                     label="Select a Pet"
+                    value={selectedPet}
+                    onChange={(e) => setSelectedPet(e.target.value)}
                     margin="normal"
                     variant="outlined"
-                    required
-                  >
-                    <MenuItem value="Pet 1">Pet 1</MenuItem>
-                    <MenuItem value="Pet 2">Pet 2</MenuItem>
+                    required>
+                    {pets.map(pet => (
+                      <MenuItem key={pet.id} value={pet.id}>
+                        {pet.name}
+                      </MenuItem>
+                    ))}
                   </TextField>
-
                   <TextField
                     select
                     fullWidth
                     label="Reason for Visit"
                     value={selectedReason}
-                    onChange={handleReasonChange}
+                    onChange={(e) => setSelectedReason(e.target.value)}
                     margin="normal"
                     variant="outlined"
                     required
@@ -143,17 +210,28 @@ function Appointments() {
                       </MenuItem>
                     ))}
                   </TextField>
+                  {selectedReason === 'Other' && (
+                    <TextField
+                      fullWidth
+                      label="Please explain"
+                      multiline
+                      rows={4}
+                      value={otherReasonExplanation}
+                      onChange={(e) => setOtherReasonExplanation(e.target.value)}
+                      margin="normal"
+                      variant="outlined"
+                    />
+                  )}
 
                   <TextField
                     select
                     fullWidth
                     label="Select a Vet"
                     value={selectedVet}
-                    onChange={handleVetChange}
+                    onChange={(e) => setSelectedVet(e.target.value)}
                     margin="normal"
                     variant="outlined"
-                    required
-                  >
+                    required>
                     {filteredVets.map(vet => (
                       <MenuItem key={vet.name} value={vet.name}>
                         {vet.name} ({vet.specialty})
@@ -165,36 +243,41 @@ function Appointments() {
                     fullWidth
                     label="Choose a Date"
                     type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
                     InputLabelProps={{
                       shrink: true,
                     }}
                     margin="normal"
                     variant="outlined"
-                    required
-                  />
+                    required />
 
                   <TextField
                     fullWidth
                     label="Choose a Time"
                     type="time"
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
                     InputLabelProps={{
                       shrink: true,
                     }}
                     margin="normal"
                     variant="outlined"
-                    required
-                  />
+                    required />
 
                   <TextField
                     select
                     fullWidth
                     label="Select a Location"
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
                     margin="normal"
                     variant="outlined"
-                    required
-                  >
-                    <MenuItem value="Location 1">Location 1</MenuItem>
-                    <MenuItem value="Location 2">Location 2</MenuItem>
+                    required>
+                    <MenuItem value="2734 Diamond Street">2734 Diamond Street</MenuItem>
+                    <MenuItem value="1825 Dola Mine Road">1825 Dola Mine Road</MenuItem>
+                    <MenuItem value="402 College Avenue">402 College Avenue</MenuItem>
+                    <MenuItem value="3888 Beechwood Avenue">3888 Beechwood Avenue</MenuItem>
                   </TextField>
 
                   <TextField
@@ -202,9 +285,10 @@ function Appointments() {
                     label="Notes"
                     multiline
                     rows={4}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
                     margin="normal"
-                    variant="outlined"
-                  />
+                    variant="outlined" />
 
                   <Button 
                     variant="contained" 
