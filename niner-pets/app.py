@@ -9,27 +9,23 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Set up secret key for session management
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey')  # Use a secret key for securely signing the session cookies
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey') 
 
-# Configure database connection
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
 db.init_app(app)
 
-# Enable CORS for all routes, allowing requests from 'http://localhost:3000' and supporting credentials
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
-# Set session cookie settings
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # For cross-origin session cookies
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS, False otherwise (especially on localhost)
 
 def get_medications_by_user_id(user_id, db):
     return (
-        db.session.query(Medication, Pet.name.label("pet_name"))  # Use label to name pet_name
-        .join(Pet, Medication.pet_id == Pet.id)  # Join on pet_id to get pet name
+        db.session.query(Medication, Pet.name.label("pet_name"))  
+        .join(Pet, Medication.pet_id == Pet.id)  
         .filter(Medication.user_id == user_id)
         .all()
     )
