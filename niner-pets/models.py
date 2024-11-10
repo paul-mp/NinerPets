@@ -118,3 +118,35 @@ class Billing(db.Model):
             'date': self.date.isoformat(),
             'created_at': self.created_at.isoformat(),
         }
+    
+class Appointment(db.Model):
+    __tablename__ = 'appointments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    pet_id = db.Column(db.Integer, db.ForeignKey('pets.id'), nullable=False)
+    vet_id = db.Column(db.Integer, db.ForeignKey('vets.id'), nullable=False)
+    reason = db.Column(db.String(255), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=False)
+    location = db.Column(db.String(255), nullable=False)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('appointments', lazy=True))
+    pet = db.relationship('Pet', backref=db.backref('appointments', lazy=True))
+    vet = db.relationship('Vet', backref=db.backref('appointments', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'pet_id': self.pet_id,
+            'vet_id': self.vet_id,
+            'reason': self.reason,
+            'date': self.date.isoformat(),
+            'time': self.time.isoformat(),
+            'location': self.location,
+            'notes': self.notes,
+        }
