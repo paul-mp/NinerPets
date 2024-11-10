@@ -97,7 +97,7 @@ function HomePage() {
           <Grid item xs={12}>
             <Paper elevation={3} sx={{ padding: 2, minHeight: '110px', minWidth: '1100px' }}>
               <Typography variant="h5" gutterBottom>
-                <strong>Welcome, Back!</strong>
+                <strong>Welcome Back!</strong>
               </Typography>
               <Grid container spacing={2}>
                 <Grid item>
@@ -189,7 +189,7 @@ function HomePage() {
           <Grid item xs={12} md={4}>
             <Paper elevation={3} sx={{ padding: 2 }}>
               <Typography variant="h6" gutterBottom>
-                <strong>Care Team and Recent Providers</strong>
+                <strong>Your Care Team and Recent Providers</strong>
               </Typography>
               <Box sx={{ marginBottom: 2 }}>
                 {loading ? (
