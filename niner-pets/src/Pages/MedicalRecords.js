@@ -1,204 +1,603 @@
-import { Box, Button, Grid, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import BookIcon from '@mui/icons-material/Book';
-import React, { useState } from 'react';
+import {
+  Box,
+  Button,
+  Grid,
+  Paper,
+  Typography,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  TextField,
+  MenuItem,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Divider,
+} from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 
 const MedicalRecords = () => {
-    const [open, setOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState({});
+  const userId = 13; // Hardcoded for now; you might want to get this from a context or props
+  const [open, setOpen] = useState(false);
+  const [recordType, setRecordType] = useState('');
+  const [name, setName] = useState('');
+  const [selectedPet, setSelectedPet] = useState('');
+  const [selectedVet, setSelectedVet] = useState(''); 
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState('');
+  const [vets, setVets] = useState([]);
+  const [pets, setPets] = useState([]);
+  const [medicalData, setMedicalData] = useState([]);
+  const [message, setMessage] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [loading, setLoading] = useState(true);
+  const [loadingVets, setLoadingVets] = useState(false); 
+  const [errorVets, setErrorVets] = useState(null); 
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [editRecord, setEditRecord] = useState(null); 
 
-    const handleClickOpen = (record) => {
-        setSelectedRecord(record);
-        setOpen(true);
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setRecordType('');
+    setName('');
+    setSelectedPet('');
+    setSelectedVet('');
+    setDescription('');
+    setDate('');
+    setMessage('');
+  };
+
+  // Fetch medical records data
+  const fetchMedicalData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:5000/medicalrecords?user_id=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched medical data:', data);
+        setMedicalData(data);
+      } else {
+        console.error('Failed to fetch medical records data:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching medical records data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch pets data
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/pets?user_id=${userId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch pets");
+        }
+        const data = await response.json();
+        console.log('Fetched Pets:', data);  
+        setPets(data);  
+      } catch (error) {
+        console.error("Error fetching pets:", error);
+      }
     };
 
-    const handleClose = () => {
-        setOpen(false);
-        setSelectedRecord({});
+    fetchPets();
+    fetchMedicalData();
+  }, [userId]);
+
+  // Fetch vets data
+  useEffect(() => {
+    const fetchVets = async () => {
+      setLoadingVets(true);
+      try {
+        const response = await fetch('http://localhost:5000/vets');
+        if (response.ok) {
+          const data = await response.json();
+          setVets(data);
+        } else {
+          throw new Error('Error fetching vets');
+        }
+      } catch (error) {
+        setErrorVets('Error fetching veterinarians.');
+        console.error(error);
+      } finally {
+        setLoadingVets(false);
+      }
+    };
+    fetchVets();
+  }, []);  
+
+  const handleAddRecord = async () => {
+    const payload = {
+      user_id: userId,
+      pet_id: selectedPet,
+      vet_id: selectedVet,
+      record_type: recordType,
+      description: description,
+      date: date,
+      name: name,
     };
 
-    // Sample pet medical record details with longer descriptions and doctor info
-    const medicalRecords = {
-        Immunization: [
-            {
-                name: 'Rabies Vaccine',
-                date: '08/10/2024',
-                description: 'The Rabies vaccine is a crucial vaccine to prevent rabies, a highly dangerous and often fatal viral disease that can be transmitted to humans through bites. Pets are required by law to be vaccinated in most states. Booster shots are typically required annually or every three years, depending on the vaccine.',
-                doctor: 'Dr. John Doe',
-            },
-            {
-                name: 'Distemper Vaccine',
-                date: '07/05/2024',
-                description: 'The Distemper vaccine protects against a contagious and serious viral illness that affects multiple systems in dogs. The vaccine is typically given in combination with other core vaccines. It is administered as part of a series of vaccines in young puppies and continues with booster shots throughout the dog’s life.',
-                doctor: 'Dr. Sarah Smith',
-            },
-            {
-                name: 'Bordetella Vaccine',
-                date: '06/20/2024',
-                description: 'This vaccine protects against Bordetella bronchiseptica, a bacterium that causes kennel cough. The vaccine is recommended for dogs who are frequently boarded, visit dog parks, or are exposed to other dogs often. It helps prevent the highly contagious respiratory illness, especially in social environments.',
-                doctor: 'Dr. Emily Brown',
-            },
-            {
-                name: 'Leptospirosis Vaccine',
-                date: '06/01/2024',
-                description: 'Leptospirosis is a bacterial infection spread through the urine of infected animals, especially in areas with standing water. The vaccine protects pets from this potentially deadly infection, which can also affect humans. It is an important consideration for pets that spend time outdoors or in rural areas.',
-                doctor: 'Dr. Michael Green',
-            },
-        ],
-        Medication: [
-            {
-                name: 'Heartgard Plus',
-                date: '09/15/2024',
-                description: 'Heartgard Plus is a monthly oral medication that prevents heartworm infection in dogs. It also protects against roundworms and hookworms, which can cause gastrointestinal issues. This medication should be administered year-round, even in winter months, to maintain full protection.',
-                doctor: 'Dr. John Doe',
-            },
-            {
-                name: 'Bravecto Chewable',
-                date: '09/01/2024',
-                description: 'Bravecto is a chewable tablet given to dogs to prevent flea infestations and kill ticks for up to 12 weeks. It works quickly and provides long-lasting protection, making it convenient for pet owners who prefer fewer doses. It’s especially recommended in areas with a high risk of tick-borne diseases.',
-                doctor: 'Dr. Sarah Smith',
-            },
-            {
-                name: 'Apoquel 16mg',
-                date: '08/20/2024',
-                description: 'Apoquel is used to control itching and inflammation caused by allergic skin conditions in dogs. It provides rapid relief and can be used long-term under veterinary supervision. This medication is often used for dogs with chronic atopic dermatitis, environmental allergies, or food sensitivities.',
-                doctor: 'Dr. Emily Brown',
-            },
-            {
-                name: 'Galliprant 20mg',
-                date: '08/10/2024',
-                description: 'Galliprant is a non-steroidal anti-inflammatory drug (NSAID) specifically formulated for dogs with osteoarthritis. It helps reduce pain and inflammation without the side effects typically associated with other NSAIDs, making it a good choice for long-term management of arthritis in aging pets.',
-                doctor: 'Dr. Michael Green',
-            },
-        ],
-        Appointments: [
-            {
-                name: 'Annual Wellness Exam',
-                date: '07/10/2024',
-                description: 'The annual wellness exam is a comprehensive check-up to evaluate the overall health of the pet. During this exam, the vet checks for any signs of illness, updates vaccinations, and discusses preventive care such as dental cleanings, parasite control, and weight management.',
-                doctor: 'Dr. John Doe',
-            },
-            {
-                name: 'Dental Cleaning',
-                date: '08/15/2024',
-                description: 'Routine dental cleaning is performed under anesthesia to remove plaque and tartar buildup, which can lead to periodontal disease if left untreated. Dental health is essential for pets to prevent pain, tooth loss, and systemic health issues caused by bacterial infections.',
-                doctor: 'Dr. Sarah Smith',
-            },
-            {
-                name: 'Surgery Consultation',
-                date: '07/25/2024',
-                description: 'This consultation was to discuss the removal of a benign growth. The vet explained the surgical process, post-operative care, and expected recovery time. Pre-surgical blood work and other diagnostics were recommended to ensure the pet’s safety during the procedure.',
-                doctor: 'Dr. Emily Brown',
-            },
-            {
-                name: 'Spay/Neuter Surgery',
-                date: '06/30/2024',
-                description: 'The spay/neuter surgery is a routine procedure performed to sterilize pets. It helps reduce the risk of certain cancers and eliminates the chance of unwanted litters. This surgery typically involves an overnight stay for observation and pain management post-surgery.',
-                doctor: 'Dr. Michael Green',
-            },
-        ],
-    };
+    console.log('Sending payload:', payload);  
 
-    return (
-        <Box sx={{ flexGrow: 1, padding: 2 }}>
-            <Box
-                sx={{
-                    padding: '10px',
-                    marginBottom: '0px',
-                    boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)',
-                    borderRadius: '6px'
-                }}
-            >
-                <Typography
-                    variant="h4"
-                    align="left"
-                    sx={{
-                        marginBottom: 2,
-                        fontWeight: 'bold'
-                    }}
+    try {
+      const response = await fetch('http://localhost:5000/medicalrecords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const newEntry = await response.json();
+        setMedicalData((prevData) => [...prevData, newEntry]);
+        handleClose();
+        setSnackbarMessage('Medical record added successfully!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+      } else {
+        const errorResponse = await response.text();
+        console.error("Failed to add medical record:", response.status, errorResponse);
+        setSnackbarMessage('Failed to add medical record.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
+    } catch (error) {
+      console.error("Error occurred while adding medical record:", error);
+      setSnackbarMessage('Error occurred while adding medical record.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleDelete = async (recordId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/medicalrecords/${recordId}`, {
+        method: 'DELETE',
+      });
+  
+      if (response.ok) {
+        setMedicalData((prevData) => prevData.filter((record) => record.id !== recordId));
+        setSnackbarMessage('Record deleted successfully!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+      } else {
+        console.error(`Failed to delete record with ID ${recordId}. Status: ${response.status}`);
+        setSnackbarMessage('Failed to delete record.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
+    } catch (error) {
+      console.error('Error occurred while deleting record:', error);
+      setSnackbarMessage('Error occurred while deleting record.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };  
+
+  const handleEdit = (recordId) => {
+    const recordToEdit = medicalData.find(record => record.id === recordId);
+    
+    if (!recordToEdit) {
+      console.log("Record not found.");
+      return;
+    }
+  
+    setEditRecord(recordToEdit);
+    setSelectedPet(recordToEdit.pet_id);
+    setSelectedVet(recordToEdit.vet_id);  
+    
+    setOpenEditDialog(true); 
+  };  
+
+  const handleSave = async () => {
+    console.log('Edit Record:', editRecord); 
+  
+    if (!editRecord.name || !editRecord.date || !editRecord.description || !editRecord.record_type || !editRecord.pet_id || !editRecord.vet_id) {
+      setSnackbarMessage('All fields must be filled out!');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return; 
+    }
+  
+    const payload = {
+      user_id: userId,
+      pet_id: editRecord.pet_id,
+      vet_id: editRecord.vet_id,
+      record_type: editRecord.record_type,
+      description: editRecord.description,
+      date: editRecord.date,
+      name: editRecord.name,
+    };
+  
+    console.log('Updating record:', payload);
+  
+    try {
+      const response = await fetch(`http://localhost:5000/medicalrecords/${editRecord.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+  
+      if (response.ok) {
+        const updatedRecord = await response.json();
+        setMedicalData((prevData) =>
+          prevData.map((record) =>
+            record.id === updatedRecord.id ? updatedRecord : record
+          )
+        );
+        setSnackbarMessage('Medical record updated successfully!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        setOpenEditDialog(false); 
+      } else {
+        const errorResponse = await response.text();
+        console.error("Failed to update medical record:", response.status, errorResponse);
+        setSnackbarMessage('Failed to update medical record.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
+    } catch (error) {
+      console.error("Error occurred while updating medical record:", error);
+      setSnackbarMessage('Error occurred while updating medical record.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };   
+  
+  const handleInputChange = (e) => {
+    setEditRecord({
+      ...editRecord,
+      [e.target.name]: e.target.value, 
+    });
+  };  
+
+  return (
+    <Box sx={{ flexGrow: 1, padding: 2 }}>
+      <Box
+        sx={{
+          padding: '10px',
+          marginBottom: '20px',
+          boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)',
+          borderRadius: '6px',
+        }}
+      >
+        <Typography variant="h4" align="left" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
+          Medical Records
+        </Typography>
+      </Box>
+
+      {/* Add Medical Record Section */}
+      <Box
+        sx={{
+          padding: '10px',
+          boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)',
+          borderRadius: '6px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <IconButton
+          onClick={handleClickOpen}
+          sx={{
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            marginRight: 1,
+            backgroundColor: 'primary.main',
+            '&:hover': {
+              backgroundColor: 'primary.dark',
+            },
+          }}
+          aria-label="add record"
+        >
+          <AddIcon sx={{ color: 'white' }} />
+        </IconButton>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', textAlign: 'center' }}>
+          Add a Medical Record
+        </Typography>
+      </Box>
+
+      {loading ? (
+        <CircularProgress sx={{ display: 'block', margin: '0 auto', marginTop: 2 }} />
+      ) : (
+        medicalData.length === 0 ? (
+          <Typography variant="body1" sx={{ textAlign: 'center', marginTop: 2 }}>
+            No medical records found.
+          </Typography>
+        ) : (
+          <Grid container spacing={3} sx={{ marginTop: 0 }}>
+            {['Appointment', 'Medication', 'Vaccine'].map((type) => (
+              <Grid item xs={6} key={type}>
+                <Paper
+                  elevation={3}
+                  sx={{
+                    width: '100%',
+                    height: '300px',
+                    margin: '0 auto',
+                    marginBottom: 0,
+                    position: 'relative',
+                    padding: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflowY: 'auto',
+                  }}
                 >
-                    Medical Records
-                </Typography>
-            </Box>
-
-            <Grid container spacing={3} sx={{ marginTop: 0 }}>
-                {['Immunization', 'Appointments', 'Medication'].map((type) => (
-                    <Grid item xs={4} key={type}>
-                        <Paper
-                            elevation={3}
-                            sx={{
-                                width: '100%',
-                                height: 'auto',
-                                margin: '0 auto',
-                                position: 'relative',
-                                padding: 2,
-                                boxShadow: '0px 3px 5px rgba(0, 0, 0, 0.5)',
-                                boxSizing: 'border-box',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'space-between',
-                            }}
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+                    {type} Records
+                    <Divider sx={{ margin: '10px 0', borderWidth: 1 }} />
+                  </Typography>
+                  {medicalData.filter((record) => record.record_type === type).length === 0 ? (
+                    <Typography variant="body2" sx={{ textAlign: 'center', color: 'gray' }}>
+                      No {type.toLowerCase()} records found.
+                    </Typography>
+                  ) : (
+                    medicalData
+                      .filter((record) => record.record_type === type)
+                      .map((record) => (
+                        <Paper 
+                          key={record.id} 
+                          sx={{
+                            padding: 2, 
+                            marginBottom: 2, 
+                            position: 'relative',
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            minHeight: '120px' 
+                          }}
                         >
-                            <Typography variant="h5" align="center" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                                {type}
-                            </Typography>
-                            <Box>
-                                {medicalRecords[type]?.map((record, index) => (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            marginBottom: 2,
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                        }}
-                                    >
-                                        <Typography variant="body1" sx={{ fontWeight: 'bold', flexGrow: 1 }}>
-                                            {record.name}
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ color: 'gray', marginRight: 2 }}>
-                                            {record.date}
-                                        </Typography>
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            sx={{ display: 'flex', alignItems: 'center' }}
-                                            onClick={() => handleClickOpen(record)}
-                                        >
-                                            <BookIcon sx={{ marginRight: 1 }} />
-                                            <Typography sx={{ color: 'white' }}>
-                                                View More
-                                            </Typography>
-                                        </Button>
-                                    </Box>
-                                ))}
-                            </Box>
+                          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                            {record.pet_name} - {record.name}
+                            <Divider sx={{ margin: '5px 0' }} />
+                          </Typography>
+                          <Typography variant="body2">
+                            {record.date} - {record.description} 
+                          </Typography>
+                          <Typography variant="body2">
+                            Vet: {record.vet_name} 
+                          </Typography>
+                          <IconButton
+                            onClick={() => handleEdit(record.id)} 
+                            sx={{ position: 'absolute', bottom: 8, right: 8, marginRight: 4 }}
+                            aria-label="edit record"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => handleDelete(record.id)}
+                            sx={{
+                              position: 'absolute',
+                              bottom: 8,
+                              right: 8,
+                            }}
+                            aria-label="delete record"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
                         </Paper>
-                    </Grid>
-                ))}
-            </Grid>
+                      ))
+                  )}
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        )
+      )}
 
-            {/* Dialog for Medical Record Details */}
-            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-                <DialogTitle>{selectedRecord.name}</DialogTitle>
-                <DialogContent>
-                    <Typography variant="body1" sx={{ marginBottom: 1 }}>
-                        Date: {selectedRecord.date}
-                    </Typography>
-                    <Typography variant="body2" sx={{ marginBottom: 1 }}>
-                        {selectedRecord.description}
-                    </Typography>
-                    <Typography variant="body2" sx={{ marginTop: 2, fontStyle: 'italic' }}>
-                        Doctor: {selectedRecord.doctor}
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} color="primary">
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
-    );
+      {/* Dialog for Adding a Record */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogContent>
+          <Typography variant="h6" sx={{ marginBottom: 2 }}>
+            Add Medical Record
+          </Typography>
+
+          <TextField
+            select
+            label="Select a Pet"
+            value={selectedPet}
+            onChange={(e) => setSelectedPet(e.target.value)}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            {pets.map((pet) => (
+              <MenuItem key={pet.id} value={pet.id}>
+                {pet.name}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            label="Record Type"
+            value={recordType}
+            onChange={(e) => setRecordType(e.target.value)}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            <MenuItem value="Appointment">Appointment</MenuItem>
+            <MenuItem value="Medication">Medication</MenuItem>
+            <MenuItem value="Vaccine">Vaccine</MenuItem>
+          </TextField>
+
+          <TextField
+            label="Record Title"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          />
+
+          <TextField
+            select
+            label="Select a Vet"
+            value={selectedVet}
+            onChange={(e) => setSelectedVet(e.target.value)}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            {vets.map((vet) => (
+              <MenuItem key={vet.id} value={vet.id}>
+                {vet.name}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          />
+
+          <TextField
+            label="Date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleAddRecord}>Add Record</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Edit Dialog */}
+      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} fullWidth maxWidth="sm">
+        <DialogContent>
+          <Typography variant="h6" sx={{ marginBottom: 2 }}>
+            Edit Medical Record
+          </Typography>
+          
+          <TextField
+            select
+            label="Select a Pet"
+            value={editRecord?.pet_id || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, pet_id: e.target.value })}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            {pets.map((pet) => (
+              <MenuItem key={pet.id} value={pet.id}>
+                {pet.name}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            label="Select a Vet"
+            value={editRecord?.vet_id || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, vet_id: e.target.value })}
+            fullWidth
+            sx={{ marginBottom: 2 }}
+            required
+          >
+            {vets.map((vet) => (
+              <MenuItem key={vet.id} value={vet.id}>
+                {vet.name}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            label="Record Type"
+            value={editRecord?.record_type || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, record_type: e.target.value })}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          >
+            {['Appointment', 'Medication', 'Vaccine'].map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            label="Description"
+            value={editRecord?.description || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, description: e.target.value })}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          />
+
+          <TextField
+            label="Date"
+            type="date"
+            value={editRecord?.date || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, date: e.target.value })}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+
+          <TextField
+            label="Record Name"
+            value={editRecord?.name || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, name: e.target.value })}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          />
+
+        </DialogContent>
+
+        {/* Dialog Actions */}
+        <DialogActions>
+          <Button onClick={() => setOpenEditDialog(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleSave} color="primary">
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Snackbar for Notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
 };
 
 export default MedicalRecords;
