@@ -47,9 +47,8 @@ def login():
     ).first()
 
     if user and user.check_password(password):
-        # Set session variables
         session['user_id'] = user.id
-        session['username'] = user.username  # Make sure this exists
+        session['username'] = user.username  
         print(f"Session set for user {user.username}")
         
         # Generate a token (for demonstration, using the username as a token)
@@ -68,7 +67,6 @@ def current_user():
 @app.route('/register', methods=['OPTIONS', 'POST'])
 def register():
     if request.method == 'OPTIONS':
-        # Handle CORS preflight request
         return '', 200
 
     # Handle the POST request to register a new user
@@ -88,7 +86,7 @@ def register():
 
     # Create and save the new user, make sure to hash the password
     new_user = User(email=email, username=username)
-    new_user.set_password(password)  # Hashing the password
+    new_user.set_password(password) 
     db.session.add(new_user)
     db.session.commit()
 
@@ -181,6 +179,10 @@ def delete_pet(pet_id):
     billing_entries = Billing.query.filter_by(pet_id=pet_id).all()
     for billing in billing_entries:
         db.session.delete(billing)
+
+    records = Record.query.filter_by(pet_id=pet_id).all()
+    for record in records:
+        db.session.delete(record)
 
     db.session.delete(pet)
     db.session.commit()
@@ -324,12 +326,10 @@ def add_billing():
     if not all([pet_id, billing_type, price, description, user_id]):
         return jsonify({'error': 'All fields are required.'}), 400
 
-    # Retrieve the pet name from the database
     pet = Pet.query.filter_by(id=pet_id).first()
     if not pet:
         return jsonify({'error': 'Pet not found.'}), 404
 
-    # Create new billing entry
     new_billing = Billing(
         user_id=user_id,
         pet_id=pet_id,
@@ -343,7 +343,6 @@ def add_billing():
     db.session.add(new_billing)
     db.session.commit()
 
-    # Prepare the response data, including pet name
     response_data = {
         'id': new_billing.id,
         'user_id': new_billing.user_id,
@@ -353,7 +352,7 @@ def add_billing():
         'description': new_billing.description,
         'date': new_billing.date,
         'created_at': new_billing.created_at.isoformat(),
-        'pet_name': pet.name  # Include pet name in the response
+        'pet_name': pet.name 
     }
 
     print(f"Billing added: {new_billing}")  
@@ -393,22 +392,15 @@ def update_billing(billing_id):
     data = request.json
     print("Updating billing entry with ID:", billing_id)
     print("Received data:", data)
-
     billing_entry = Billing.query.get_or_404(billing_id)
 
-    # Update billing entry fields
-    billing_entry.pet_id = data.get('pet_id', billing_entry.pet_id)  # Use existing if not provided
-    billing_entry.type = data['type']  # Assuming 'type' is required
-    billing_entry.price = data['price']  # Assuming 'price' is required
-    billing_entry.description = data['description']  # Assuming 'description' is required
-    billing_entry.date = data['date']  # Assuming 'date' is required
+    billing_entry.pet_id = data.get('pet_id', billing_entry.pet_id)  
+    billing_entry.type = data['type']  
+    billing_entry.price = data['price']  
+    billing_entry.description = data['description']  
+    billing_entry.date = data['date']  
 
-    # Additional logic to validate or transform data could go here
-
-    # Commit changes to the database
     db.session.commit()
-
-    # Prepare and return the response data
     response_data = {
         'id': billing_entry.id,
         'user_id': billing_entry.user_id,
@@ -416,8 +408,8 @@ def update_billing(billing_id):
         'type': billing_entry.type,
         'price': billing_entry.price,
         'description': billing_entry.description,
-        'date': billing_entry.date.strftime('%Y-%m-%d'),  # Format date
-        'pet_name': billing_entry.pet.name  # Include pet name in the response
+        'date': billing_entry.date.strftime('%Y-%m-%d'),  
+        'pet_name': billing_entry.pet.name  
     }
 
     print(f"Billing updated: {response_data}")  
@@ -428,7 +420,7 @@ def add_appointment():
     data = request.json
     user_id = data.get('user_id')
     pet_id = data.get('pet_id')
-    vet_id = data.get('vet_id')  # This now corresponds to the vet's ID from the frontend
+    vet_id = data.get('vet_id')  
     reason = data.get('reason')
     date = data.get('date')
     time = data.get('time')
@@ -438,18 +430,16 @@ def add_appointment():
     if not all([user_id, pet_id, vet_id, reason, date, time, location]):
         return jsonify({'error': 'All fields are required.'}), 400
 
-    # Optional: Validate the date and time format
     try:
-        datetime.strptime(date, '%Y-%m-%d')  # Validate date in 'YYYY-MM-DD' format
+        datetime.strptime(date, '%Y-%m-%d')  
     except ValueError:
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
 
     try:
-        datetime.strptime(time, '%H:%M')  # Validate time in 'HH:MM' format
+        datetime.strptime(time, '%H:%M')  
     except ValueError:
         return jsonify({'error': 'Invalid time format. Use HH:MM.'}), 400
 
-    # Create new appointment entry
     new_appointment = Appointment(
         user_id=user_id,
         pet_id=pet_id,
@@ -466,142 +456,98 @@ def add_appointment():
 
     return jsonify({'message': 'Appointment added successfully'}), 201
 
-# @app.route('/records', methods=['POST'])
-# def add_record():
-#     data = request.json
-#     pet_id = data.get('pet_id')
-#     user_id = data.get('user_id')
-#     name = data.get('name')
-#     date = data.get('date')
-#     description = data.get('description')
-#     doctor = data.get('doctor')
-#     record_type = data.get('record_type')
+from datetime import datetime
 
-#     if not all([pet_id, user_id, name, date, record_type]):
-#         return jsonify({'error': 'All fields are required.'}), 400
-
-#     # Convert date string to date object if necessary
-#     try:
-#         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
-#     except ValueError:
-#         return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
-
-#     new_record = Record(
-#         pet_id=pet_id,
-#         user_id=user_id,
-#         name=name,
-#         date=date_obj,
-#         description=description,
-#         doctor=doctor,
-#         record_type=record_type
-#     )
-
-#     db.session.add(new_record)
-#     db.session.commit()
-
-#     return jsonify({'message': 'Record added successfully', 'record': new_record.to_dict()}), 201
-# @app.route('/records/<int:pet_id>', methods=['GET'])
-# def get_records_by_pet(pet_id):
-#     records = Record.query.filter_by(pet_id=pet_id).all()
-#     return jsonify([record.to_dict() for record in records]), 200
-
-# @app.route('/records/<int:record_id>', methods=['PUT'])
-# def update_record(record_id):
-#     data = request.json
-#     record = Record.query.get_or_404(record_id)
-
-#     record.name = data.get('name', record.name)
-#     record.date = data.get('date', record.date)
-#     record.description = data.get('description', record.description)
-#     record.doctor = data.get('doctor', record.doctor)
-#     record.record_type = data.get('record_type', record.record_type)
-
-#     # Convert date string to date object if necessary
-#     try:
-#         if data.get('date'):
-#             date_obj = datetime.strptime(data['date'], '%Y-%m-%d').date()
-#             record.date = date_obj
-#     except ValueError:
-#         return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
-
-#     db.session.commit()
-
-#     return jsonify({'message': 'Record updated successfully', 'record': record.to_dict()}), 200
-
-# @app.route('/records/<int:record_id>', methods=['DELETE'])
-# def delete_record(record_id):
-#     record = Record.query.get(record_id)
-#     if not record:
-#         return jsonify({'message': 'Record not found'}), 404
-
-#     db.session.delete(record)
-#     db.session.commit()
-
-#     return jsonify({'message': 'Record deleted successfully'}), 200
-
-@app.route('/medical_records', methods=['POST'])
-def add_medical_record():
+@app.route('/medicalrecords', methods=['POST'])
+def add_record():
     data = request.json
     pet_id = data.get('pet_id')
     user_id = data.get('user_id')
-    record_type = data.get('type')
-    event_name = data.get('event_name')
+    name = data.get('name')
     date = data.get('date')
-    description = data.get('description')
-    doctor = data.get('doctor')
+    description = data.get('description')  
+    vet_id = data.get('vet_id')
+    record_type = data.get('record_type')
 
-    if not all([pet_id, user_id, record_type, event_name, date, description, doctor]):
+    if not all([pet_id, user_id, name, date, record_type, vet_id, description]):
         return jsonify({'error': 'All fields are required.'}), 400
+
+    try:
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 401
 
     new_record = Record(
         pet_id=pet_id,
         user_id=user_id,
-        type=record_type,
-        event_name=event_name,
-        date=date,
+        name=name,
+        date=date_obj,
         description=description,
-        doctor=doctor
+        vet_id=vet_id,
+        record_type=record_type
     )
+
     db.session.add(new_record)
     db.session.commit()
 
-    return jsonify({'message': 'Medical record added successfully'}), 201
+    return jsonify({'message': 'Record added successfully', 'record': new_record.to_dict()}), 201
+     
+@app.route('/medicalrecords', methods=['GET'])
+def get_medical_records_by_user():
+    user_id = request.args.get('user_id')
+    
+    if not user_id:
+        return jsonify({'error': 'User ID is required'}), 400
+    
+    records = Record.query.filter_by(user_id=user_id).all()
+    
+    results = [{
+        'id': record.id,
+        'pet_id': record.pet_id,
+        'pet_name': record.pet.name,  
+        'name': record.name,
+        'date': record.date.strftime('%Y-%m-%d'),
+        'description': record.description,
+        'vet_id': record.vet.id,
+        'vet_name': record.vet.name,  
+        'record_type': record.record_type,
+    } for record in records]
 
-@app.route('/medical_records/<int:record_id>', methods=['PUT'])
-def update_medical_record(record_id):
+    return jsonify(results), 200
+
+@app.route('/medicalrecords/<int:record_id>', methods=['PUT'])
+def update_record(record_id):
     data = request.json
+    print('Received data:', data)
     record = Record.query.get_or_404(record_id)
 
-    record.type = data.get('type', record.type)
-    record.event_name = data.get('event_name', record.event_name)
+    record.name = data.get('name', record.name)
     record.date = data.get('date', record.date)
     record.description = data.get('description', record.description)
-    record.doctor = data.get('doctor', record.doctor)
+    record.vet_id = data.get('vet_id', record.vet_id)
+    record.record_type = data.get('record_type', record.record_type)
+    record.pet_id = data.get('pet_id', record.pet_id)  
+
+    try:
+        if 'date' in data:
+            date_obj = datetime.strptime(data['date'], '%Y-%m-%d').date()
+            record.date = date_obj
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
 
     db.session.commit()
-    return jsonify({'message': 'Medical record updated successfully'}), 200
+    return jsonify({'message': 'Record updated successfully', 'record': record.to_dict()}), 200
 
-@app.route('/medical_records/<int:record_id>', methods=['DELETE'])
-def delete_medical_record(record_id):
-    record = Record.query.get(record_id)
-    if record is None:
-        return jsonify({'error': 'Medical record not found'}), 404
+@app.route('/medicalrecords/<int:record_id>', methods=['DELETE'])
+def delete_record(record_id):
+     record = Record.query.get(record_id)
+     if not record:
+         return jsonify({'message': 'Record not found'}), 404
 
-    db.session.delete(record)
-    db.session.commit()
-    return jsonify({'message': 'Medical record deleted successfully'}), 200
+     db.session.delete(record)
+     db.session.commit()
 
-@app.route('/medical_records', methods=['GET'])
-def get_medical_records():
-    user_id = request.args.get('user_id', type=int)
-    if user_id is None:
-        return jsonify({'error': 'user_id is required'}), 400
-
-    records = Record.query.filter_by(user_id=user_id).all()
-    response = [record.to_dict() for record in records]
-    return jsonify(response), 200
-
-
+     return jsonify({'message': 'Record deleted successfully'}), 200
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,7 +1,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import CheckConstraint
+from datetime import date
 
 db = SQLAlchemy()
 
@@ -10,10 +10,8 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    username = db.Column(db.String(100), unique=True, nullable=False)  # Add username field
-    password = db.Column(db.String(255), nullable=False)  # Allow longer hashed passwords
-
-    records = db.relationship('Record', back_populates='user')
+    username = db.Column(db.String(100), unique=True, nullable=False)  
+    password = db.Column(db.String(255), nullable=False)  
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -47,7 +45,6 @@ class Pet(db.Model):
     weight = db.Column(db.Numeric(5, 2), nullable=False)
 
     user = db.relationship('User', backref=db.backref('pets', lazy=True))
-    records = db.relationship('Record',  backref=db.backref('pets', lazy=True))
 
     def to_dict(self):
         return {
@@ -136,7 +133,6 @@ class Appointment(db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    # Relationships
     user = db.relationship('User', backref=db.backref('appointments', lazy=True))
     pet = db.relationship('Pet', backref=db.backref('appointments', lazy=True))
     vet = db.relationship('Vet', backref=db.backref('appointments', lazy=True))
@@ -158,26 +154,27 @@ class Appointment(db.Model):
 class Record(db.Model):
     __tablename__ = 'records'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    pet_id = db.Column(db.Integer, db.ForeignKey('pets.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    pet_id = db.Column(db.Integer, db.ForeignKey('pets.id'), nullable=False)
+    vet_id = db.Column(db.Integer, db.ForeignKey('vets.id'), nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    doctor = db.Column(db.String(255), nullable=True)
-    record_type = db.Column(db.String(255), nullable=False)  # Corresponds to the "Type" dropdown
+    date = db.Column(db.Date, nullable=False, default=date.today)
+    description = db.Column(db.Text, nullable=False)
+    record_type = db.Column(db.String(255), nullable=False)
 
-    pet = db.relationship('Pet', back_populates='records')
-    user = db.relationship('User', back_populates='records')
+    user = db.relationship('User', backref=db.backref('records', lazy=True))
+    pet = db.relationship('Pet', backref=db.backref('records', lazy=True))
+    vet = db.relationship('Vet', backref=db.backref('records', lazy=True))
 
     def to_dict(self):
         return {
             'id': self.id,
-            'pet_id': self.pet_id,
             'user_id': self.user_id,
+            'pet_id': self.pet_id,
+            'vet_id': self.vet_id,
             'name': self.name,
             'date': self.date.isoformat(),
             'description': self.description,
-            'doctor': self.doctor,
             'record_type': self.record_type,
         }

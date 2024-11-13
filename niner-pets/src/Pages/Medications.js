@@ -138,8 +138,6 @@ const Medications = () => {
         event.preventDefault(); 
     
         setFormLoading(true);
-    
-        // Validate form data
         if (!formData.petId || !formData.name || !formData.dosage || !formData.startDate || !formData.sideEffects || !formData.instructions) {
             handleSnackbarOpen("All fields except end date are required.", 'error');
             return; 
@@ -184,7 +182,6 @@ const Medications = () => {
                 const responseData = await response.json();
                 handleSnackbarOpen(responseData.message);
     
-                // Update medications state without refetching
                 if (selectedMedicationId) {
                     setMedications((prevMedications) => 
                         prevMedications.map((med) => 
@@ -192,7 +189,6 @@ const Medications = () => {
                         )
                     );
                 } else {
-                    // Assuming the response returns the created medication object
                     setMedications((prevMedications) => [
                         ...prevMedications,
                         { ...submissionData, id: responseData.newMedicationId, pet_name: pets.find(pet => pet.id === submissionData.pet_id)?.name } // Adjust as per your response
