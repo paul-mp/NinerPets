@@ -128,23 +128,24 @@ const MedicalRecords = () => {
       date: date,
       name: name,
     };
-
-    console.log('Sending payload:', payload);  
-
+  
+    console.log('Sending payload:', payload);
+  
     try {
       const response = await fetch('http://localhost:5000/medicalrecords', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
+  
       if (response.ok) {
         const newEntry = await response.json();
-        setMedicalData((prevData) => [...prevData, newEntry]);
+        setMedicalData(prevData => [...prevData, newEntry]); 
         handleClose();
         setSnackbarMessage('Medical record added successfully!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
+        fetchMedicalData(); 
       } else {
         const errorResponse = await response.text();
         console.error("Failed to add medical record:", response.status, errorResponse);
@@ -158,7 +159,7 @@ const MedicalRecords = () => {
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
-  };
+  };  
 
   const handleDelete = async (recordId) => {
     try {
@@ -240,6 +241,7 @@ const MedicalRecords = () => {
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
         setOpenEditDialog(false); 
+        await fetchMedicalData();
       } else {
         const errorResponse = await response.text();
         console.error("Failed to update medical record:", response.status, errorResponse);
@@ -484,6 +486,7 @@ const MedicalRecords = () => {
           <Button onClick={handleAddRecord}>Add Record</Button>
         </DialogActions>
       </Dialog>
+
       {/* Edit Dialog */}
       <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} fullWidth maxWidth="sm">
         <DialogContent>
@@ -509,22 +512,6 @@ const MedicalRecords = () => {
 
           <TextField
             select
-            label="Select a Vet"
-            value={editRecord?.vet_id || ''}
-            onChange={(e) => setEditRecord({ ...editRecord, vet_id: e.target.value })}
-            fullWidth
-            sx={{ marginBottom: 2 }}
-            required
-          >
-            {vets.map((vet) => (
-              <MenuItem key={vet.id} value={vet.id}>
-                {vet.name}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            select
             label="Record Type"
             value={editRecord?.record_type || ''}
             onChange={(e) => setEditRecord({ ...editRecord, record_type: e.target.value })}
@@ -535,6 +522,31 @@ const MedicalRecords = () => {
             {['Appointment', 'Medication', 'Vaccine'].map((type) => (
               <MenuItem key={type} value={type}>
                 {type}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            label="Record Title"
+            value={editRecord?.name || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, name: e.target.value })}
+            required
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          />
+
+          <TextField
+            select
+            label="Select a Vet"
+            value={editRecord?.vet_id || ''}
+            onChange={(e) => setEditRecord({ ...editRecord, vet_id: e.target.value })}
+            fullWidth
+            sx={{ marginBottom: 2 }}
+            required
+          >
+            {vets.map((vet) => (
+              <MenuItem key={vet.id} value={vet.id}>
+                {vet.name}
               </MenuItem>
             ))}
           </TextField>
@@ -559,15 +571,6 @@ const MedicalRecords = () => {
             InputLabelProps={{
               shrink: true,
             }}
-          />
-
-          <TextField
-            label="Record Name"
-            value={editRecord?.name || ''}
-            onChange={(e) => setEditRecord({ ...editRecord, name: e.target.value })}
-            required
-            fullWidth
-            sx={{ marginBottom: 2 }}
           />
 
         </DialogContent>
