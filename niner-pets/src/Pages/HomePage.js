@@ -17,25 +17,57 @@ function HomePage() {
 
   // Fetch Vets Data
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+  
+        const response = await fetch('http://localhost:5000/user', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+  
+        const data = await response.json();
+        setUsername(data.username); // Set the username from fetched data
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+  
+    fetchUserData();
+  }, []);
+
+
+  useEffect(() => {
     const fetchVets = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/vets');
+        const response = await fetch('http://localhost:5000/vets'); // Update this URL if needed
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error('Failed to fetch vets data');
         }
         const data = await response.json();
         setVets(data);
       } catch (error) {
-        console.error('Error fetching vets:', error);
-        setVets([]); // Set an empty array if there's an error to avoid undefined data
+        console.error('Error fetching vets data:', error);
+        setVets([]); // Set an empty array to avoid undefined data errors
       } finally {
-        setLoading(false); // Ensure loading is set to false after fetch attempt
+        setLoading(false);
       }
     };
-
+  
     fetchVets();
   }, []);
+  
+  
 
   // Fetch Weather Data
   useEffect(() => {
@@ -97,7 +129,7 @@ function HomePage() {
           <Grid item xs={12}>
             <Paper elevation={3} sx={{ padding: 2, minHeight: '110px', minWidth: '1100px' }}>
               <Typography variant="h5" gutterBottom>
-                <strong>Welcome back!</strong>
+                <strong>Welcome back, {username}!</strong>
               </Typography>
               <Grid container spacing={2}>
                 <Grid item>
