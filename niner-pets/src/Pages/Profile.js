@@ -19,25 +19,30 @@ const ProfilePage = () => {
     });
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [pets, setPets] = useState([]); // To store the user's pets
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const token = localStorage.getItem('token');
+                const token = localStorage.getItem('authToken');
+                console.log("Token: ", token);
+
                 if (!token) {
                     throw new Error('No authentication token found');
                 }
-                
+
                 const response = await fetch('http://localhost:5000/user', {
                     method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
                     },
                 });
+
                 if (!response.ok) {
-                    throw new Error('Failed to fetch user data');
+                    const errorDetails = await response.text();
+                    throw new Error(`Failed to fetch user data: ${errorDetails}`);
                 }
+
                 const data = await response.json();
                 setUserData({
                     name: data.username,
@@ -45,8 +50,8 @@ const ProfilePage = () => {
                 });
             } catch (error) {
                 console.error('Error fetching user data:', error);
-                // Optionally redirect to login if token is missing or invalid
-                // window.location.href = '/login';
+                setSnackbarMessage('Error fetching data, please try again later.');
+                setSnackbarOpen(true);
             }
         };
 
@@ -60,6 +65,11 @@ const ProfilePage = () => {
 
     return (
         <Box sx={{ padding: 2 }}>
+            {/* Display Greeting with Username */}
+            <Typography variant="h4" sx={{ marginBottom: 2 }}>
+                Hi, {userData.name}!
+            </Typography>
+
             <Box 
                 sx={{ 
                     padding: '10px', 
@@ -98,7 +108,7 @@ const ProfilePage = () => {
                     <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center' }}>
                         {userData.name}
                         <IconButton onClick={handleEditName} sx={{ marginLeft: 1 }}>
-                            <EditIcon/>
+                            <EditIcon />
                         </IconButton>
                     </Typography>
                     <Typography variant="body1">{userData.email}</Typography>
@@ -129,7 +139,13 @@ const ProfilePage = () => {
             >
                 <Typography variant="h6">Your Pets:</Typography>
                 <Box sx={{ marginTop: 1 }}>
-                    <Typography>No pets currently added to your account.</Typography>
+                    {pets.length === 0 ? (
+                        <Typography>No pets currently added to your account.</Typography>
+                    ) : (
+                        pets.map((pet, index) => (
+                            <Typography key={index}>{pet.name}</Typography>
+                        ))
+                    )}
                 </Box>
             </Box>
 

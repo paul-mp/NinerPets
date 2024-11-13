@@ -97,7 +97,7 @@ function HomePage() {
           <Grid item xs={12}>
             <Paper elevation={3} sx={{ padding: 2, minHeight: '110px', minWidth: '1100px' }}>
               <Typography variant="h5" gutterBottom>
-                <strong>Welcome Back!</strong>
+                <strong>Welcome back!</strong>
               </Typography>
               <Grid container spacing={2}>
                 <Grid item>

@@ -14,25 +14,44 @@ import ManagePets from './Pages/ManagePets';
 import Profile from './Pages/Profile';
 import MedicalRecords from './Pages/MedicalRecords'
 import './Styles/App.css';
+import { jwtDecode } from 'jwt-decode';
 import FAQ from './Pages/Faq';
 
-// Custom theme for buttons
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#005035', // Custom color for primary buttons
+      main: '#005035', 
     },
     secondary: {
-      main: '#005035', // Custom color for secondary buttons
+      main: '#005035', 
     }
   },
 });
 
-// Component to protect routes from unauthenticated users
 function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("authToken");
   const isAuthenticated = localStorage.getItem("isAuthenticated");
 
-  return isAuthenticated ? children : <Navigate to="/login" />; // If authenticated, allow access, otherwise redirect to login
+  const isValidToken = (token) => {
+    if (!token) return false; 
+
+    try {
+      const decoded = jwtDecode(token); 
+      if (!decoded || Date.now() >= decoded.exp * 1000) {
+        return false; 
+      }
+      return true; 
+    } catch (error) {
+      return false; 
+    }
+  };
+
+  // Check if user is authenticated and if the token is valid
+  if (!isAuthenticated || !isValidToken(token)) {
+    return <Navigate to="/login" />; // If not authenticated or invalid token, redirect to login
+  }
+
+  return children; // Allow access to protected route if valid
 }
 
 function App() {
@@ -40,8 +59,9 @@ function App() {
   const navigate = useNavigate();
 
   // Function to trigger login success message and store authentication state
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (token) => {
     setLoginSuccess(true);
+    localStorage.setItem("authToken", token);  // Store the token in localStorage
     localStorage.setItem("isAuthenticated", "true"); // Set user as authenticated in localStorage
     setTimeout(() => {
       setLoginSuccess(false);
