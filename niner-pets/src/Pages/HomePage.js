@@ -11,7 +11,7 @@ function HomePage() {
   const [locationError, setLocationError] = useState(null);
   const [isCelsius, setIsCelsius] = useState(true); // Temperature unit toggle state
 
-  const WEATHER_API_KEY = '3fdbd90d38d8c5191acf8e45fd05b0a6';
+  const WEATHER_API_KEY = '0c7db80f086a715ec30dbe2643b0973a';
 
   const toggleTemperatureUnit = () => setIsCelsius(!isCelsius); // Toggle temperature unit
 
