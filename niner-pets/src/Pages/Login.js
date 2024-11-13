@@ -8,26 +8,34 @@ const LoginPage = ({ onLoginSuccess }) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+
   const handleLogin = async (e) => {
-    e.preventDefault(); 
-    const response = await fetch('http://localhost:5000/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email_or_username: email, password: password }),
-    });
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email_or_username: email, password: password }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.token) {
-      localStorage.setItem('authToken', data.token);
-      onLoginSuccess(data.token);
-      navigate("/home"); 
-    } else {
-      setErrorMessage('Login failed. Please check your credentials.');
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+        onLoginSuccess(data.token);
+        navigate("/home");
+      } else {
+        setErrorMessage('Login failed. Please check your credentials.');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      setErrorMessage('An error occurred. Please try again.');
     }
   };
+
 
   return (
     <Container component="main" maxWidth="sm" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "85vh" }}>

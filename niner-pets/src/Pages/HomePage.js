@@ -9,13 +9,13 @@ function HomePage() {
   const [weather, setWeather] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [locationError, setLocationError] = useState(null);
-  const [isCelsius, setIsCelsius] = useState(true); // Temperature unit toggle state
+  const [isCelsius, setIsCelsius] = useState(true);
 
   const WEATHER_API_KEY = '0c7db80f086a715ec30dbe2643b0973a';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
-  const toggleTemperatureUnit = () => setIsCelsius(!isCelsius); // Toggle temperature unit
+  const toggleTemperatureUnit = () => setIsCelsius(!isCelsius);
 
-  // Fetch Vets Data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -23,34 +23,33 @@ function HomePage() {
         if (!token) {
           throw new Error('No authentication token found');
         }
-  
-        const response = await fetch('http://localhost:5000/user', {
+
+        const response = await fetch(`${API_BASE_URL}/user`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
-  
+
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
         }
-  
+
         const data = await response.json();
-        setUsername(data.username); // Set the username from fetched data
+        setUsername(data.username);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-  
-    fetchUserData();
-  }, []);
 
+    fetchUserData();
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     const fetchVets = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/vets'); // Update this URL if needed
+        const response = await fetch(`${API_BASE_URL}/vets`);
         if (!response.ok) {
           throw new Error('Failed to fetch vets data');
         }
@@ -58,14 +57,15 @@ function HomePage() {
         setVets(data);
       } catch (error) {
         console.error('Error fetching vets data:', error);
-        setVets([]); // Set an empty array to avoid undefined data errors
+        setVets([]);
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchVets();
-  }, []);
+  }, [API_BASE_URL]);
+
   
   
 
