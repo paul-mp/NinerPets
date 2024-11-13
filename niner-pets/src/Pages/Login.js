@@ -8,43 +8,24 @@ const LoginPage = ({ onLoginSuccess }) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
+  const handleLogin = async (e) => {
+    e.preventDefault(); 
+    const response = await fetch('http://localhost:5000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email_or_username: email, password: password }),
+    });
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+    const data = await response.json();
 
-    try {
-      const response = await fetch("http://127.0.0.1:5000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email_or_username: email,
-          password: password,
-        }),
-      });
-
-      const data = await response.json();
-      console.log('Login response:', data);
-
-      if (response.ok) {
-        if (!data.token) {
-          console.error('No token received from server');
-          setErrorMessage("Login failed: No authentication token received");
-          return;
-        }
-        
-        setErrorMessage("");
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('isAuthenticated', 'true');
-        onLoginSuccess();
-        navigate("/home");
-      } else {
-        setErrorMessage(data.error || "Login failed");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage("An error occurred during login");
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+      onLoginSuccess(data.token);
+      navigate("/home"); 
+    } else {
+      setErrorMessage('Login failed. Please check your credentials.');
     }
   };
 
@@ -55,12 +36,42 @@ const LoginPage = ({ onLoginSuccess }) => {
           <strong>Login</strong>
         </Typography>
 
+        {/* Show error message if login fails */}
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
 
         <Box component="form" onSubmit={handleLogin} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <TextField variant="outlined" margin="normal" required fullWidth id="email" label="Email or Username" name="email" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
-          <TextField variant="outlined" margin="normal" required fullWidth name="password" label="Password" type="password" id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2, backgroundColor: "#005035", "&:hover": { backgroundColor: "#003f29" }, borderRadius: "30px", width: "321px", height: "50px" }}>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Email or Username"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{ marginTop: 2, backgroundColor: "#005035", "&:hover": { backgroundColor: "#003f29" }, borderRadius: "30px", width: "321px", height: "50px" }}
+          >
             Login
           </Button>
         </Box>

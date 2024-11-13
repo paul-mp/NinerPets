@@ -1,26 +1,29 @@
-import os
+import os, logging
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from models import db, User, Vet, Pet, Medication, Billing, Appointment, Record # Import the db and models
 from dotenv import load_dotenv
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 
 load_dotenv()
 
+# Initialize Flask app
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey') 
-
+# Configuration
+app.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey')  
+app.config['JWT_TOKEN_LOCATION'] = ['headers']
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # For cross-origin session cookies
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS, False otherwise (especially on localhost)
 
-# Initialize the database
+jwt = JWTManager(app)
+
 db.init_app(app)
 
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
-
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # For cross-origin session cookies
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS, False otherwise (especially on localhost)
 
 def get_medications_by_user_id(user_id, db):
     return (
@@ -35,34 +38,29 @@ def get_medications_by_user_id(user_id, db):
 def home():
     return "Welcome to NinerPets!"
 
+from flask_jwt_extended import create_access_token
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
     email_or_username = data.get('email_or_username')
     password = data.get('password')
 
-    # Check if login is using username or email
     user = User.query.filter(
         (User.email == email_or_username) | (User.username == email_or_username)
     ).first()
 
     if user and user.check_password(password):
-        session['user_id'] = user.id
-        session['username'] = user.username  
-
-        print(f"Session set for user {user.username}")
-        
-        # Generate a token (for demonstration, using the username as a token)
-        token = user.username
+        token = create_access_token(identity=user.id)
         return jsonify({'message': 'Login successful', 'token': token}), 200
     else:
-        print(f"Login failed for user: {email_or_username}")
         return jsonify({'error': 'Invalid credentials'}), 401
     
 @app.route('/current_user', methods=['GET'])
 def current_user():
-    if 'username' in session:
-        return jsonify({'username': session['username']}), 200
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])  
+        return jsonify({'user_id': user.id, 'username': user.username}), 200
     return jsonify({'error': 'Not logged in'}), 401
 
 @app.route('/register', methods=['OPTIONS', 'POST'])
@@ -70,7 +68,6 @@ def register():
     if request.method == 'OPTIONS':
         return '', 200
 
-    # Handle the POST request to register a new user
     data = request.json
     email = data.get('email')
     password = data.get('password')
@@ -98,20 +95,38 @@ def get_vets():
     vets = Vet.query.all()  
     return jsonify([vet.to_dict() for vet in vets]) 
 
+from flask import jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 @app.route('/user', methods=['GET'])
-def get_user_info():
-    if 'user_id' in session:
-        user = User.query.get(session['user_id'])
+@jwt_required()  
+def get_user():
+    try:
+        current_user_id = get_jwt_identity()  
+        if not current_user_id:
+            return jsonify({"msg": "Missing claim: sub"}), 422
+
+        user = User.query.get(current_user_id)
         if user:
-            return jsonify({'username': user.username}), 200
-    return jsonify({'error': 'User not logged in'}), 401
+            return jsonify({
+                'username': user.username,
+                'email': user.email,
+            }), 200
+        else:
+            return jsonify({"msg": "User not found"}), 404
+
+    except Exception as e:
+        return jsonify({"msg": f"Error: {str(e)}"}), 500
 
 @app.route('/get_username', methods=['GET'])
 def get_username():
     if 'user_id' in session:
-        return jsonify({'username': session['username']}), 200
-    else:
-        return jsonify({'error': 'Not authenticated'}), 401
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        if user:
+            return jsonify({'username': user.username})
+    return jsonify({'username': None}), 401
 
 @app.route('/add_vet', methods=['POST'])
 def add_vet():

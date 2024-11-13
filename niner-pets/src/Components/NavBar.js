@@ -43,7 +43,7 @@ const NavBar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('isAuthenticated');
     navigate('/login');
     handleMenuClose();
