@@ -49,6 +49,7 @@ def login():
     if user and user.check_password(password):
         session['user_id'] = user.id
         session['username'] = user.username  
+
         print(f"Session set for user {user.username}")
         
         # Generate a token (for demonstration, using the username as a token)
@@ -439,7 +440,7 @@ def add_appointment():
         datetime.strptime(time, '%H:%M')  
     except ValueError:
         return jsonify({'error': 'Invalid time format. Use HH:MM.'}), 400
-
+      
     new_appointment = Appointment(
         user_id=user_id,
         pet_id=pet_id,
@@ -455,8 +456,6 @@ def add_appointment():
     db.session.commit()
 
     return jsonify({'message': 'Appointment added successfully'}), 201
-
-from datetime import datetime
 
 @app.route('/medicalrecords', methods=['POST'])
 def add_record():
