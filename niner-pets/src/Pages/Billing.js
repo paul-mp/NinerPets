@@ -23,7 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import React, { useState, useEffect } from 'react';
 
 const Billing = () => {
-  const userId = 13; // Hardcoded for now; you might want to get this from a context or props
+  const [userId, setUserId] = useState(null);
   const [open, setOpen] = useState(false);
   const [balanceType, setBalanceType] = useState('');
   const [selectedPet, setSelectedPet] = useState('');
@@ -42,6 +42,35 @@ const Billing = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentEdit, setCurrentEdit] = useState(null);
   const [openEditModal, setOpenEditModal] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('authToken'); // Get token from localStorage
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch('http://localhost:5000/user', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const data = await response.json();
+        setUserId(data.id); 
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -65,6 +94,7 @@ const Billing = () => {
   };  
 
   const fetchBillingData = async () => {
+    if (!userId) return;
     setLoading(true); 
     try {
         const response = await fetch(`http://localhost:5000/billing?user_id=${userId}`);
@@ -81,7 +111,6 @@ const Billing = () => {
         setLoading(false); 
     }
   };
-
 
   useEffect(() => {
     const fetchPets = async () => {

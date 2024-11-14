@@ -43,12 +43,43 @@ const ManagePets = () => {
     const [petToDelete, setPetToDelete] = useState(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false); 
     const [snackbarMessage, setSnackbarMessage] = useState(''); 
-    const userId = "13"; 
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
-        fetchPets();
-    }, []);
+        const fetchUserData = async () => {
+          try {
+            const token = localStorage.getItem('authToken'); // Get token from localStorage
+            if (!token) {
+              throw new Error('No authentication token found');
+            }
+    
+            const response = await fetch('http://localhost:5000/user', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+    
+            if (!response.ok) {
+              throw new Error('Failed to fetch user data');
+            }
+    
+            const data = await response.json();
+            setUserId(data.id); 
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          }
+        };
+    
+        fetchUserData();
+      }, []);
 
+      useEffect(() => {
+        if (userId) {
+            fetchPets();
+        }
+    }, [userId]);
+    
     const fetchPets = () => {
         fetch(`http://localhost:5000/pets?user_id=${userId}`)
             .then(response => {

@@ -21,7 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 
 const MedicalRecords = () => {
-  const userId = 13; // Hardcoded for now; you might want to get this from a context or props
+  const [userId, setUserId] = useState(null);
   const [open, setOpen] = useState(false);
   const [recordType, setRecordType] = useState('');
   const [name, setName] = useState('');
@@ -41,6 +41,35 @@ const MedicalRecords = () => {
   const [errorVets, setErrorVets] = useState(null); 
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editRecord, setEditRecord] = useState(null); 
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('authToken'); // Get token from localStorage
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch('http://localhost:5000/user', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const data = await response.json();
+        setUserId(data.id); 
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -78,6 +107,7 @@ const MedicalRecords = () => {
 
   // Fetch pets data
   useEffect(() => {
+    if (userId === null) return;
     const fetchPets = async () => {
       try {
         const response = await fetch(`http://localhost:5000/pets?user_id=${userId}`);
@@ -314,87 +344,81 @@ const MedicalRecords = () => {
       {loading ? (
         <CircularProgress sx={{ display: 'block', margin: '0 auto', marginTop: 2 }} />
       ) : (
-        medicalData.length === 0 ? (
-          <Typography variant="body1" sx={{ textAlign: 'center', marginTop: 2 }}>
-            No medical records found.
-          </Typography>
-        ) : (
-          <Grid container spacing={3} sx={{ marginTop: 0 }}>
-            {['Exam', 'Medication', 'Vaccine'].map((type) => (
-              <Grid item xs={6} key={type}>
-                <Paper
-                  elevation={3}
-                  sx={{
-                    width: '100%',
-                    height: '300px',
-                    margin: '0 auto',
-                    marginBottom: 0,
-                    position: 'relative',
-                    padding: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflowY: 'auto',
-                  }}
-                >
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-                    {type} Records
-                    <Divider sx={{ margin: '10px 0', borderWidth: 1 }} />
+        <Grid container spacing={3} sx={{ marginTop: 0 }}>
+          {['Exam', 'Medication', 'Vaccine'].map((type) => (
+            <Grid item xs={6} key={type}>
+              <Paper
+                elevation={3}
+                sx={{
+                  width: '100%',
+                  height: '300px',
+                  margin: '0 auto',
+                  marginBottom: 0,
+                  position: 'relative',
+                  padding: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflowY: 'auto',
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+                  {type} Records
+                  <Divider sx={{ margin: '10px 0', borderWidth: 1 }} />
+                </Typography>
+                {medicalData.filter((record) => record.record_type === type).length === 0 ? (
+                  <Typography variant="body2" sx={{ textAlign: 'center', color: 'gray' }}>
+                    No {type.toLowerCase()} records found.
                   </Typography>
-                  {medicalData.filter((record) => record.record_type === type).length === 0 ? (
-                    <Typography variant="body2" sx={{ textAlign: 'center', color: 'gray' }}>
-                      No {type.toLowerCase()} records found.
-                    </Typography>
-                  ) : (
-                    medicalData
-                      .filter((record) => record.record_type === type)
-                      .map((record) => (
-                        <Paper 
-                          key={record.id} 
-                          sx={{
-                            padding: 2, 
-                            marginBottom: 2, 
-                            position: 'relative',
-                            display: 'flex', 
-                            flexDirection: 'column',
-                            minHeight: '120px' 
-                          }}
+                ) : (
+                  medicalData
+                    .filter((record) => record.record_type === type)
+                    .map((record) => (
+                      <Paper
+                        key={record.id}
+                        sx={{
+                          padding: 2,
+                          marginBottom: 2,
+                          position: 'relative',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          minHeight: '120px',
+                        }}
+                      >
+                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                          {record.pet_name} - {record.name}
+                          <Divider sx={{ margin: '5px 0' }} />
+                        </Typography>
+                        <Typography variant="body2">
+                          {record.date} - {record.description}
+                        </Typography>
+                        <Typography variant="body2">
+                          Vet: {record.vet_name}
+                        </Typography>
+                        <IconButton
+                          onClick={() => handleEdit(record.id)}
+                          sx={{ position: 'absolute', bottom: 8, right: 8, marginRight: 4 }}
+                          aria-label="edit record"
                         >
-                          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                            {record.pet_name} - {record.name}
-                            <Divider sx={{ margin: '5px 0' }} />
-                          </Typography>
-                          <Typography variant="body2">
-                            {record.date} - {record.description} 
-                          </Typography>
-                          <Typography variant="body2">
-                            Vet: {record.vet_name} 
-                          </Typography>
-                          <IconButton
-                            onClick={() => handleEdit(record.id)} 
-                            sx={{ position: 'absolute', bottom: 8, right: 8, marginRight: 4 }}
-                            aria-label="edit record"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => handleDelete(record.id)}
-                            sx={{
-                              position: 'absolute',
-                              bottom: 8,
-                              right: 8,
-                            }}
-                            aria-label="delete record"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Paper>
-                      ))
-                  )}
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        )
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => handleDelete(record.id)}
+                          sx={{
+                            position: 'absolute',
+                            bottom: 8,
+                            right: 8,
+                          }}
+                          aria-label="delete record"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Paper>
+                    ))
+                )}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       )}
 
       {/* Dialog for Adding a Record */}
@@ -600,7 +624,7 @@ const MedicalRecords = () => {
         </Alert>
       </Snackbar>
     </Box>
-  );
+    )
 };
 
 export default MedicalRecords;

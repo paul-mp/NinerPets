@@ -35,7 +35,7 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 });
 
 const Medications = () => {
-    const userId = 13; // Hardcoded for testing
+    const [userId, setUserId] = useState(null);
     const [open, setOpen] = useState(false);
     const [medications, setMedications] = useState([]);
     const [pets, setPets] = useState([]); 
@@ -61,6 +61,35 @@ const Medications = () => {
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('authToken'); // Get token from localStorage
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+    
+                const response = await fetch('http://localhost:5000/user', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+    
+                const data = await response.json();
+                setUserId(data.id); 
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+    
+        fetchUserData();
+    }, []);
+
     const handleOpen = () => setOpen(true); 
     const handleClose = () => {
         setOpen(false);
@@ -79,6 +108,7 @@ const Medications = () => {
     };
 
     useEffect(() => {
+        if (!userId) return;
         const fetchMedications = async () => {
             setLoading(true); 
             try {
@@ -96,7 +126,7 @@ const Medications = () => {
         };
     
         fetchMedications();
-    }, []);
+    }, [userId]);
 
     useEffect(() => {
         const fetchPets = async () => {
