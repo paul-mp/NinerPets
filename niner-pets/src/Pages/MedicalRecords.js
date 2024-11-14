@@ -320,7 +320,7 @@ const MedicalRecords = () => {
           </Typography>
         ) : (
           <Grid container spacing={3} sx={{ marginTop: 0 }}>
-            {['Appointment', 'Medication', 'Vaccine'].map((type) => (
+            {['Exam', 'Medication', 'Vaccine'].map((type) => (
               <Grid item xs={6} key={type}>
                 <Paper
                   elevation={3}
@@ -429,7 +429,7 @@ const MedicalRecords = () => {
             fullWidth
             sx={{ marginBottom: 2 }}
           >
-            <MenuItem value="Appointment">Appointment</MenuItem>
+            <MenuItem value="Exam">Exam</MenuItem>
             <MenuItem value="Medication">Medication</MenuItem>
             <MenuItem value="Vaccine">Vaccine</MenuItem>
           </TextField>
@@ -519,7 +519,7 @@ const MedicalRecords = () => {
             fullWidth
             sx={{ marginBottom: 2 }}
           >
-            {['Appointment', 'Medication', 'Vaccine'].map((type) => (
+            {['Exam', 'Medication', 'Vaccine'].map((type) => (
               <MenuItem key={type} value={type}>
                 {type}
               </MenuItem>
