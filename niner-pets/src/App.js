@@ -16,6 +16,7 @@ import MedicalRecords from './Pages/MedicalRecords'
 import './Styles/App.css';
 import { jwtDecode } from 'jwt-decode';
 import FAQ from './Pages/Faq';
+import NearbyVets from './Pages/NearbyVets';
 
 const theme = createTheme({
   palette: {
@@ -123,6 +124,9 @@ function App() {
         
         {/* FAQ page*/}
         <Route path="/faq" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
+
+        {/* Nearby Vets page*/}
+        <Route path="/nearbyvets" element={<ProtectedRoute><NearbyVets /></ProtectedRoute>} />
       </Routes>
     </ThemeProvider>
   );
