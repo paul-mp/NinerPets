@@ -130,18 +130,6 @@ const ProfilePage = () => {
                             Hi, {userData.name}!
                         </Typography>
                     </Box>
-        
-                    <Box
-                        sx={{
-                            padding: '10px',
-                            marginBottom: '20px',
-                            boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)',
-                            borderRadius: '6px',
-                            backgroundColor: '#ffffff'
-                        }}
-                    >
-                        <Typography variant="h4" >Profile</Typography>
-                    </Box>
 
                     <Box 
                         sx={{ 
