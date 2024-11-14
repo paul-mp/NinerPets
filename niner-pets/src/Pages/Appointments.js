@@ -12,7 +12,7 @@ const visitReasons = [
 ];
 
 function Appointments() {
-  const userId = 13;
+  const [userId, setUserId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVet, setSelectedVet] = useState('');
   const [selectedPet, setSelectedPet] = useState('');
@@ -43,33 +43,37 @@ function Appointments() {
         if (!token) {
           throw new Error('No authentication token found');
         }
-
+    
         const response = await fetch('http://localhost:5000/user', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
-
+    
+        console.log('User Data Response:', response); // Log the response
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
         }
-
+    
         const data = await response.json();
+        setUserId(data.id);
         setUsername(data.username); // Set the username from fetched data
-        setIsDataLoaded(true); // Set data as loaded
+        setIsDataLoaded(true);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-
+  
     fetchUserData();
   }, []);
 
   useEffect(() => {
+    if (!userId) return; // Don't run the effect until userId is set
+  
     const fetchVets = async () => {
       try {
-        const response = await fetch('http://localhost:5000/vets'); 
+        const response = await fetch('http://localhost:5000/vets');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -79,10 +83,10 @@ function Appointments() {
         setError('Error fetching vet data: ' + error.message);
       }
     };
-
+  
     const fetchPets = async () => {
       try {
-        const response = await fetch('http://localhost:5000/pets?user_id=13'); 
+        const response = await fetch(`http://localhost:5000/pets?user_id=${userId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch pets');
         }
@@ -92,17 +96,22 @@ function Appointments() {
         setError('Error fetching pet data: ' + error.message);
       }
     };
-
+  
     fetchVets();
     fetchPets();
-  }, []);
+  }, [userId]);
 
   const handleScheduleAppointment = async (event) => {
     event.preventDefault();
-
+  
+    if (!userId) {
+      setError('User not authenticated');
+      return;
+    }
+  
     const selectedVetObj = vets.find(vet => vet.name === selectedVet);
     const vetId = selectedVetObj ? selectedVetObj.id : null;
-
+  
     const appointmentData = {
       user_id: userId,
       pet_id: selectedPet,
@@ -113,7 +122,7 @@ function Appointments() {
       location: selectedLocation,
       notes: notes,
     };
-
+  
     try {
       const response = await fetch('http://localhost:5000/appointments', {
         method: 'POST',
@@ -122,14 +131,14 @@ function Appointments() {
         },
         body: JSON.stringify(appointmentData),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to schedule appointment');
       }
-
+  
       setOpenSnackbar(true); 
       setError('');  
-
+  
       setSelectedPet('');
       setSelectedVet('');
       setSelectedReason('');

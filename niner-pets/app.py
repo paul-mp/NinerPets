@@ -145,10 +145,20 @@ def add_vet():
 @app.route('/pets', methods=['GET'])
 def get_pets():
     user_id = request.args.get('user_id')
-    if user_id:
-        pets = Pet.query.filter_by(user_id=user_id).all()
-        return jsonify([pet.to_dict() for pet in pets])
-    return jsonify({'error': 'User ID is required'}), 400
+    if user_id and user_id.lower() == 'null':
+        return jsonify({'error': 'Invalid User ID'}), 400
+
+    try:
+        user_id = int(user_id)  
+    except ValueError:
+        return jsonify({'error': 'User ID must be a valid integer'}), 400
+
+    pets = Pet.query.filter_by(user_id=user_id).all()
+
+    if not pets:
+        return jsonify({'message': 'No pets found for this user'}), 404
+
+    return jsonify([pet.to_dict() for pet in pets])
 
 @app.route('/pets', methods=['POST'])
 def add_pet():
