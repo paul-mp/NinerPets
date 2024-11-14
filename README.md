@@ -9,6 +9,7 @@ The application includes features for scheduling appointments, managing pet prof
 - Uses PostgreSQL hosted on AWS RDS for data storage and management.
 
 **Run Locally**
+
 **Clone the project**
 ```git clone https://github.com/paul-mp/NinerPets.git```
 
