@@ -8,6 +8,7 @@ const LoginPage = ({ onLoginSuccess }) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
+
   const handleLogin = async (e) => {
     e.preventDefault(); 
     const response = await fetch('http://localhost:5000/login', {
@@ -29,6 +30,10 @@ const LoginPage = ({ onLoginSuccess }) => {
     }
   };
 
+  const handleNavigateToRegister = () => {
+    navigate("/register"); // Navigate to the register page
+  };
+
   return (
     <Container component="main" maxWidth="sm" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "85vh" }}>
       <Paper elevation={4} sx={{ padding: 8, borderRadius: 5, width: "450px" }}>
@@ -36,7 +41,6 @@ const LoginPage = ({ onLoginSuccess }) => {
           <strong>Login</strong>
         </Typography>
 
-        {/* Show error message if login fails */}
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
 
         <Box component="form" onSubmit={handleLogin} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -73,6 +77,14 @@ const LoginPage = ({ onLoginSuccess }) => {
             sx={{ marginTop: 2, backgroundColor: "#005035", "&:hover": { backgroundColor: "#003f29" }, borderRadius: "30px", width: "321px", height: "50px" }}
           >
             Login
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleNavigateToRegister}
+            sx={{ marginTop: 2, borderRadius: "30px", width: "321px", height: "50px" }}
+          >
+            Register
           </Button>
         </Box>
       </Paper>
