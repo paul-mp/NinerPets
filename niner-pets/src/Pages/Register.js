@@ -26,7 +26,7 @@ const RegisterPage = () => {
 
       if (response.ok) {
         setErrorMessage("");
-        navigate("/home");
+        navigate("/login");
       } else {
         setErrorMessage(data.error || "Registration failed");
       }

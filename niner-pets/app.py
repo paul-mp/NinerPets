@@ -2,13 +2,16 @@ import os
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from models import db, User, Vet, Pet, Medication, Billing, Appointment # Import the db and models
+from models import db, User, Vet, Pet, Medication, Billing, Appointment # Import the db and models
 from dotenv import load_dotenv
+from datetime import datetime
 from datetime import datetime
 
 load_dotenv()
 
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey') 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey') 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -58,6 +61,7 @@ def login():
     else:
         print(f"Login failed for user: {email_or_username}")
         return jsonify({'error': 'Invalid credentials'}), 401
+    
     
 @app.route('/current_user', methods=['GET'])
 def current_user():
@@ -173,6 +177,14 @@ def delete_pet(pet_id):
     pet = Pet.query.get(pet_id)
     if not pet:
         return jsonify({'message': 'Pet not found'}), 404
+
+    medications = Medication.query.filter_by(pet_id=pet_id).all()
+    for med in medications:
+        db.session.delete(med)
+
+    billing_entries = Billing.query.filter_by(pet_id=pet_id).all()
+    for billing in billing_entries:
+        db.session.delete(billing)
 
     medications = Medication.query.filter_by(pet_id=pet_id).all()
     for med in medications:

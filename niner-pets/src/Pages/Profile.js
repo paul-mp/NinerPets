@@ -1,24 +1,57 @@
-import React, { useState } from 'react';
+import EditIcon from '@mui/icons-material/Edit';
 import {
+    Avatar,
     Box,
     Button,
-    Typography,
-    Snackbar,
-    Avatar,
-    IconButton,
     Divider,
-    Paper
+    IconButton,
+    Paper,
+    Snackbar,
+    Typography
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import { Link } from 'react-router-dom'; 
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const ProfilePage = () => {
     const [userData, setUserData] = useState({
-        name: 'Your Name',
-        email: 'your.email@example.com',
+        name: '',
+        email: '',
     });
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+                
+                const response = await fetch('http://localhost:5000/user', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+                const data = await response.json();
+                setUserData({
+                    name: data.username,
+                    email: data.email,
+                });
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                // Optionally redirect to login if token is missing or invalid
+                // window.location.href = '/login';
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     const handleEditName = () => {
         setSnackbarMessage('Edit name functionality not implemented yet.');

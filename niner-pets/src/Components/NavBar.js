@@ -17,7 +17,6 @@ const NavBar = () => {
 
   const isAuthenticated = localStorage.getItem('isAuthenticated'); 
 
-
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -42,6 +41,14 @@ const NavBar = () => {
       handleMenuClose(); 
     }
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('isAuthenticated');
+    navigate('/login');
+    handleMenuClose();
+  };
+
   const isOnAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   return (
@@ -91,7 +98,7 @@ const NavBar = () => {
           onClose={handleMenuClose}
         >
           <MenuItem onClick={handleProfileClick}>Profile</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </AppBar>
     </Box>

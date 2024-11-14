@@ -11,7 +11,7 @@ const LoginPage = ({ onLoginSuccess }) => {
 
   const handleLogin = async (event) => {
     event.preventDefault();
-  
+
     try {
       const response = await fetch("http://127.0.0.1:5000/login", {
         method: "POST",
@@ -19,18 +19,26 @@ const LoginPage = ({ onLoginSuccess }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email_or_username: email,  // Can be either email or username
+          email_or_username: email,
           password: password,
-        }), // Send email/username and password
+        }),
       });
-  
+
       const data = await response.json();
-  
+      console.log('Login response:', data);
+
       if (response.ok) {
-        // Login successful
+        if (!data.token) {
+          console.error('No token received from server');
+          setErrorMessage("Login failed: No authentication token received");
+          return;
+        }
+        
         setErrorMessage("");
-        onLoginSuccess(); // Call the callback function to show the success message
-        navigate("/home"); // Redirect to the home page
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('isAuthenticated', 'true');
+        onLoginSuccess();
+        navigate("/home");
       } else {
         setErrorMessage(data.error || "Login failed");
       }
@@ -39,23 +47,9 @@ const LoginPage = ({ onLoginSuccess }) => {
       setErrorMessage("An error occurred during login");
     }
   };
-  
-
-  const handleNavigateToRegister = () => {
-    navigate("/register"); // Navigate to the register page
-  };
 
   return (
-    <Container
-      component="main"
-      maxWidth="sm"
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "85vh",
-      }}
-    >
+    <Container component="main" maxWidth="sm" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "85vh" }}>
       <Paper elevation={4} sx={{ padding: 8, borderRadius: 5, width: "450px" }}>
         <Typography component="h1" variant="h5" sx={{ marginBottom: 3 }}>
           <strong>Login</strong>
@@ -63,65 +57,11 @@ const LoginPage = ({ onLoginSuccess }) => {
 
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}
 
-        <Box
-          component="form"
-          onSubmit={handleLogin}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-        >
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email or Username"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{
-              marginTop: 2,
-              backgroundColor: "#005035",
-              "&:hover": { backgroundColor: "#003f29" },
-              borderRadius: "30px",
-              width: "321px",
-              height: "50px",
-            }}
-          >
+        <Box component="form" onSubmit={handleLogin} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField variant="outlined" margin="normal" required fullWidth id="email" label="Email or Username" name="email" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextField variant="outlined" margin="normal" required fullWidth name="password" label="Password" type="password" id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2, backgroundColor: "#005035", "&:hover": { backgroundColor: "#003f29" }, borderRadius: "30px", width: "321px", height: "50px" }}>
             Login
-          </Button>
-
-          <Button
-            onClick={handleNavigateToRegister}
-            variant="outlined"
-            color="secondary"
-            sx={{
-              marginTop: 2,
-              borderRadius: "30px",
-              width: "321px",
-              height: "50px",
-            }}
-          >
-            Register
           </Button>
         </Box>
       </Paper>
