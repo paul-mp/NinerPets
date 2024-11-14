@@ -10,6 +10,7 @@ function HomePage() {
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [locationError, setLocationError] = useState(null);
   const [isCelsius, setIsCelsius] = useState(true); // Temperature unit toggle state
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   const WEATHER_API_KEY = '0c7db80f086a715ec30dbe2643b0973a';
 
@@ -37,6 +38,7 @@ function HomePage() {
   
         const data = await response.json();
         setUsername(data.username); // Set the username from fetched data
+        setIsDataLoaded(true);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -121,6 +123,21 @@ function HomePage() {
 
   // Convert temperature based on unit
   const convertTemperature = (temp) => (isCelsius ? temp : (temp * 9) / 5 + 32);
+
+  if (!isDataLoaded) {
+    return (
+      <Box 
+        sx={{
+          display: 'flex',
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: "400px",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <div className="app-background">

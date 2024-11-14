@@ -110,6 +110,7 @@ def get_user():
         user = User.query.get(current_user_id)
         if user:
             return jsonify({
+                'id': user.id,
                 'username': user.username,
                 'email': user.email,
             }), 200
