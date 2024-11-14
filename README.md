@@ -1,7 +1,7 @@
 **NinerPets**
 
 NinerPets is a pet management platform designed to help UNCC students efficiently manage their pets' health. 
-The application includes featuresfor scheduling appointments, managing pet profiles, viewing medical records, and more.
+The application includes features for scheduling appointments, managing pet profiles, viewing medical records, and more.
 
 - Built with React and Material-UI for the frontend, providing a responsive and intuitive user experience.
 - Uses Flask as the backend framework to handle API requests and data processing.
