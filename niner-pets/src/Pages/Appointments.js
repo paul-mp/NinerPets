@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Paper, Typography, TextField, Button, MenuItem, Snackbar } from '@mui/material';
+import { Box, Grid, Paper, Typography, TextField, Button, MenuItem, Snackbar, CircularProgress } from '@mui/material';
 
 const visitReasons = [
   "Routine Checkup",
@@ -26,6 +26,8 @@ function Appointments() {
   const [pets, setPets] = useState([]); 
   const [error, setError] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [username, setUsername] = useState(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false)
 
   const handlePetChange = (e) => setSelectedPet(e.target.value);
   const handleVetChange = (e) => setSelectedVet(e.target.value);
@@ -33,6 +35,36 @@ function Appointments() {
   const handleDateChange = (e) => setSelectedDate(e.target.value);
   const handleTimeChange = (e) => setSelectedTime(e.target.value);
   const handleLocationChange = (e) => setSelectedLocation(e.target.value);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch('http://localhost:5000/user', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const data = await response.json();
+        setUsername(data.username); // Set the username from fetched data
+        setIsDataLoaded(true); // Set data as loaded
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     const fetchVets = async () => {
@@ -50,7 +82,7 @@ function Appointments() {
 
     const fetchPets = async () => {
       try {
-        const response = await fetch('http://localhost:5000/pets?user_id=13'); // Assuming an API for fetching pets by user ID
+        const response = await fetch('http://localhost:5000/pets?user_id=13'); 
         if (!response.ok) {
           throw new Error('Failed to fetch pets');
         }
@@ -145,16 +177,16 @@ function Appointments() {
           </Grid>
 
           <Grid item xs={12}>
-            <Paper 
-              elevation={3} 
+            <Paper
+              elevation={3}
               sx={{
                 padding: '15px',
                 textAlign: 'center',
-                boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)',  
-                borderRadius: '6px'  
+                boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)',
+                borderRadius: '6px'
               }}>
-              <Typography variant="h4" sx={{ fontWeight: 'bold' }}> 
-                Welcome back, User!
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {isDataLoaded ? `Welcome back, ${username}!` : <CircularProgress />}
               </Typography>
             </Paper>
           </Grid>
