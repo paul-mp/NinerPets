@@ -1,4 +1,4 @@
-*NinerPets*
+**NinerPets**
 NinerPets is a pet management platform designed to help UNCC students efficiently manage their pets' health. 
 The application includes featuresfor scheduling appointments, managing pet profiles, viewing medical records, and more.
 
