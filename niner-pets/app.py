@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from models import db, User, Vet, Pet, Medication, Billing, Appointment, Record # Import the db and models
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 
 load_dotenv()
@@ -18,6 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # For cross-origin session cookies
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS, False otherwise (especially on localhost)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
 
 jwt = JWTManager(app)
 
