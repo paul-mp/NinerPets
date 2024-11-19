@@ -481,8 +481,8 @@ def add_appointment():
 @app.route('/appointments', methods=['GET'])
 def get_appointments():
     user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+    if user_id and user_id.lower() == 'null':
+        return jsonify({'error': 'Invalid User ID'}), 400
 
     try:
         # Assuming you have some database query to fetch appointments

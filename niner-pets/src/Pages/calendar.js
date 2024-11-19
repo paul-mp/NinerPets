@@ -50,12 +50,35 @@ function Calendar() {
   const [error, setError] = useState('');
   const [openDetailDialog, setOpenDetailDialog] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const fetchAppointments = async () => {
       setLoading(true);
       try {
-        const userId = 13; // Replace with the actual user ID
+        
+        const fetchUserData = async () => {
+          try {
+            const token = localStorage.getItem('authToken'); // Get token from localStorage
+            if (!token) {
+              throw new Error('No authentication token found');
+            }
+            const response = await fetch('http://localhost:5000/user', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+            if (!response.ok) {
+              throw new Error('Failed to fetch user data');
+            }
+            const data = await response.json();
+            setUserId(data.id); 
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          }
+        };
+        fetchUserData();
         const response = await fetch(`http://localhost:5000/appointments?user_id=${userId}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
