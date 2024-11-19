@@ -211,10 +211,13 @@ def delete_pet(pet_id):
     for billing in billing_entries:
         db.session.delete(billing)
 
+    appointments = Appointment.query.filter_by(pet_id=pet_id).all()
+    for appointment in appointments:
+        db.session.delete(appointment)
+
     records = Record.query.filter_by(pet_id=pet_id).all()
     for record in records:
         db.session.delete(record)
-
 
     db.session.delete(pet)
     db.session.commit()

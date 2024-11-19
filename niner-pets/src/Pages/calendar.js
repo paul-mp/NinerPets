@@ -12,7 +12,11 @@ import {
   Select,
   Typography,
   CircularProgress,
+  Divider,
   Box,
+  Snackbar,
+  Alert,
+  SnackbarContent,
   IconButton,
   FormControl,
   InputLabel,
@@ -44,7 +48,7 @@ const DetailTitle = styled(Typography)({
 });
 
 const DateText = styled(Typography)({
-  fontFamily: 'Roboto, sans-serif',
+  fontFamily: 'Arial',
   color: '#000',
   marginBottom: '8px',
 });
@@ -67,6 +71,8 @@ function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', date: '', time: '', location: '', notes: '' });
   const [userId, setUserId] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false); 
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   // Fetch user data on mount
   useEffect(() => {
@@ -104,6 +110,7 @@ function Calendar() {
           time: appointment.time,
           date: appointment.date,
           notes: appointment.notes,
+          reason: appointment.reason,
         }));
         setEvents(mappedEvents);
         setLoading(false);
@@ -130,6 +137,8 @@ function Calendar() {
       if (response.ok) {
         setEvents(events.filter((event) => event.id !== selectedEvent.id));
         setOpenDetailDialog(false);
+        setSnackbarMessage('Event deleted successfully!'); 
+        setSnackbarOpen(true); 
       } else {
         throw new Error('Failed to delete appointment');
       }
@@ -139,25 +148,33 @@ function Calendar() {
     }
   };
 
-  // Handle save after editing event
   const handleEditSave = async () => {
+    const { reason, date, time, location, notes } = editForm;
+  
+    if (!reason || !date || !time || !location) {
+      alert('Please fill out all required fields!');
+      return;
+    }
+  
     try {
       const updatedAppointment = {
-        reason: editForm.reason || selectedEvent.reason,
-        date: editForm.date || selectedEvent.date,
-        time: editForm.time || selectedEvent.time,
-        location: editForm.location || selectedEvent.location,
-        notes: editForm.notes || selectedEvent.notes,
+        reason: reason || selectedEvent.reason,
+        date: date || selectedEvent.date,
+        time: time || selectedEvent.time,
+        location: location || selectedEvent.location,
+        notes: notes !== undefined ? notes : selectedEvent.notes, 
       };
-
+  
       const response = await fetch(`http://localhost:5000/appointments/${selectedEvent.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedAppointment),
       });
-
+  
       if (response.ok) {
-        window.location.reload();
+        window.location.reload(); 
+        setSnackbarMessage('Event updated successfully!'); 
+        setSnackbarOpen(true); 
       } else {
         throw new Error('Failed to update appointment');
       }
@@ -167,22 +184,30 @@ function Calendar() {
     }
   };
 
-  // Open edit dialog and prepopulate form fields
   const handleOpenEditDialog = () => {
-    setEditForm({
-      reason: selectedEvent?.reason || '',
-      date: selectedEvent?.date || '',
-      time: selectedEvent?.time || '',
-      location: selectedEvent?.location || '',
-      notes: selectedEvent?.notes || '',
-    });
-    setOpenEditDialog(true);
+    console.log('Selected Event:', selectedEvent); 
+    if (selectedEvent) {
+      setEditForm({
+        reason: selectedEvent.reason || '',
+        date: selectedEvent.date || '',
+        time: selectedEvent.time || '',
+        location: selectedEvent.location || '',
+        notes: selectedEvent.notes || '',
+      });
+      setOpenEditDialog(true);
+    }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
     <div>
       {loading ? (
-        <CircularProgress />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <CircularProgress />
+        </Box>
       ) : error ? (
         <Typography color="error">{error}</Typography>
       ) : (
@@ -211,6 +236,7 @@ function Calendar() {
             }}
             titleFormat={{ year: 'numeric', month: 'long' }}
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: true }}
+            eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: true }}
           />
         </Box>
       )}
@@ -222,14 +248,19 @@ function Calendar() {
             <CloseIcon />
           </IconButton>
         </StyledDialogTitle>
+        <Divider sx={{ borderWidth: 1 }} />
         <DialogContent>
           {selectedEvent && (
             <Box>
               <DetailTitle>{selectedEvent.title}</DetailTitle>
-              <DateText>Date: {selectedEvent.date}</DateText>
-              <DetailText>Time: {selectedEvent.time || 'All day'}</DetailText>
+              <DateText>  Date: {selectedEvent.date 
+                ? new Date(selectedEvent.date + 'T00:00:00').toLocaleDateString('en-US') 
+                : 'No date provided'}</DateText>
+              <DetailText> Time: {selectedEvent.time 
+                ? new Date(`1970-01-01T${selectedEvent.time}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+                : 'All day'}</DetailText>
               <DetailText>Location: {selectedEvent.location || 'No location provided'}</DetailText>
-              <DetailText>Notes: {selectedEvent.notes || 'No notes provided'}</DetailText>
+              <DetailText>Notes: {selectedEvent.notes || 'No notes provided.'}</DetailText>
             </Box>
           )}
         </DialogContent>
@@ -255,7 +286,7 @@ function Calendar() {
           <FormControl fullWidth margin="normal">
         <InputLabel>Type of Appointment</InputLabel>
             <Select
-              value={editForm.reason || selectedEvent?.reason || ''}
+              value={editForm.reason}
               onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
               label="Type of Appointment"
             >
@@ -316,50 +347,78 @@ function Calendar() {
 
             {/* Inline CSS for toolbar title and button alignment */}
             <style jsx>{`
-        .fc .fc-toolbar-title {
-          font-family: Roboto, sans-serif;
-          font-size: 1.5rem;
-          color: #000;
-        }
-        .fc-toolbar.fc-header-toolbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0 1%;
-        }
-        .fc-toolbar-chunk {
-          display: flex;
-          gap: 8px; /* Adds spacing between buttons */
-        }
-        .fc-toolbar .fc-toolbar-chunk:first-child {
-          justify-content: flex-start;
-        }
-        .fc-toolbar .fc-toolbar-chunk:last-child {
-          justify-content: flex-end;
-        }
-        .fc-button {
-          background-color: #005035 !important;
-          color: white !important;
-          font-family: Roboto, sans-serif !important;
-          border: none !important;
-          margin: 0 4px; /* Add horizontal space between buttons */
-        }
-        .fc-button:hover {
-          background-color: #003922 !important;
-        }
-        .fc-event, .fc-daygrid-event, .fc-daygrid-block-event {
-          background-color: #005035 !important; /* Change event background to green */
-          border-color: #003922 !important; /* Border color for better contrast */
-          color: white !important; /* Event text color */
-          padding-left: 5px;
-        }
-        .fc-daygrid-event-dot {
-          display: none !important; /* Remove the dot completely */
-        }
-        .custom-event-content {
-          padding-left: 8px; /* Adds space to the left of the event */
-        }
-      `}</style>
+            .fc .fc-toolbar-title {
+              font-family: Arial, sans-serif !important;
+              font-size: 1.5rem;
+              color: #000;
+            }
+            .fc-toolbar.fc-header-toolbar {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 0 1%;
+            }
+            .fc-toolbar-chunk {
+              display: flex;
+              gap: 8px; /* Adds spacing between buttons */
+            }
+            .fc-toolbar .fc-toolbar-chunk:first-child {
+              justify-content: flex-start;
+            }
+            .fc-toolbar .fc-toolbar-chunk:last-child {
+              justify-content: flex-end;
+            }
+            .fc-button {
+              background-color: #005035 !important;
+              color: white !important;
+              font-family: Arial, sans-serif !important;
+              border: none !important;
+              margin: 0 4px; /* Add horizontal space between buttons */
+            }
+            .fc-button:hover {
+              background-color: #003922 !important;
+            }
+            .fc-event, .fc-daygrid-event, .fc-daygrid-block-event {
+              background-color: #005035 !important;
+              border-color: #003922 !important;
+              color: white !important;
+              font-family: Arial, sans-serif !important;
+              padding-left: 5px;
+            }
+              .fc .fc-daygrid-day.fc-day-today {
+              background-color: #f0f0f0; /* Light gray color */
+            }
+            .fc-daygrid-event-dot {
+              display: none !important;
+            }
+            .custom-event-content {
+              padding-left: 8px;
+            }
+              .fc .fc-col-header-cell-cushion {
+                display: inline-block;
+                padding: 0; /* Adjust padding as needed */
+                font-family: Roboto, sans-serif !important;
+                font-size: 14px; /* Optional: Customize font size */
+                color: #333; /* Optional: Customize font color */
+            }
+                .fc .fc-daygrid-day-number {
+                padding: 4px;
+                position: relative;
+                z-index: 4;
+                font-family: Roboto, sans-serif !important; /* Apply Arial font */
+                font-size: 14px; /* Adjust font size */
+                color: #000; /* Optional: Set the color */
+            }
+          `}</style>
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={3000}
+            onClose={handleSnackbarClose}
+          >
+            <Alert onClose={handleSnackbarClose} severity="success">
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
     </div>
   );
 }

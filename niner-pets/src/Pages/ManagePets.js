@@ -320,7 +320,9 @@ const ManagePets = () => {
 
             <Box mt={2}>
                 {loading ? (
-                    <CircularProgress />
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+                        <CircularProgress />
+                  </Box>
                 ) : pets.length === 0 ? (
                     <Typography variant="h6" align="center" sx={{ marginTop: 4, color: 'gray' }}>
                         No pets found. Click "Add a Pet" to get started!
