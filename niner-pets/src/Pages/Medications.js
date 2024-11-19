@@ -166,15 +166,15 @@ const Medications = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault(); 
-    
+        
         setFormLoading(true);
+    
         if (!formData.petId || !formData.name || !formData.dosage || !formData.startDate || !formData.sideEffects || !formData.instructions) {
             handleSnackbarOpen("All fields except end date are required.", 'error');
             return; 
         }
     
         const refillValue = formData.refill === 'yes';
-    
         const submissionData = {
             pet_id: formData.petId,
             user_id: userId,
@@ -182,7 +182,7 @@ const Medications = () => {
             dosage: formData.dosage,
             description: formData.description,
             start_date: formData.startDate,
-            end_date: formData.endDate || null, 
+            end_date: formData.endDate || null,
             side_effects: formData.sideEffects,
             instructions: formData.instructions,
             refill: refillValue,
@@ -211,29 +211,31 @@ const Medications = () => {
             } else {
                 const responseData = await response.json();
                 handleSnackbarOpen(responseData.message);
-    
+
                 if (selectedMedicationId) {
                     setMedications((prevMedications) => 
                         prevMedications.map((med) => 
-                            med.id === selectedMedicationId ? { ...submissionData, id: selectedMedicationId, pet_name: pets.find(pet => pet.id === submissionData.pet_id)?.name } : med
+                            med.id === selectedMedicationId 
+                            ? { ...submissionData, id: selectedMedicationId, pet_name: pets.find(pet => pet.id === submissionData.pet_id)?.name }
+                            : med
                         )
                     );
                 } else {
                     setMedications((prevMedications) => [
                         ...prevMedications,
-                        { ...submissionData, id: responseData.newMedicationId, pet_name: pets.find(pet => pet.id === submissionData.pet_id)?.name } // Adjust as per your response
+                        { ...submissionData, id: responseData.newMedicationId, pet_name: pets.find(pet => pet.id === submissionData.pet_id)?.name }
                     ]);
                 }
     
-                handleClose(); 
+                handleClose();  
             }
         } catch (error) {
             console.error('Error:', error);
             handleSnackbarOpen('An unexpected error occurred.', 'error');
         } finally {
-            setFormLoading(false); 
+            setFormLoading(false);  
         }
-    };          
+    };  
 
     const handleClickOpen = (id) => {
         setSelectedMedicationId(id);
@@ -292,6 +294,33 @@ const Medications = () => {
 
     return (
         <Box sx={{ flexGrow: 1, padding: 2 }}>
+            <Box sx={{ marginBottom: 2 }}>
+                {pets.length === 0 && (
+                <Alert 
+                    severity="info" 
+                    sx={{
+                    backgroundColor: 'primary.main', 
+                    color: 'white', 
+                    }}
+                >
+                    No pets found. Please{' '}
+                    <Link 
+                    to="/manage-pets" 
+                    style={{
+                        fontWeight: 'bold', 
+                        textDecoration: 'none', 
+                        color: 'white', 
+                        transition: 'color 0.3s', 
+                    }}
+                    onMouseEnter={(e) => e.target.style.color = 'black'} 
+                    onMouseLeave={(e) => e.target.style.color = 'white'} 
+                    >
+                    go to the Manage Pets page
+                    </Link>{' '}
+                    to add a pet before adding a medication.
+                </Alert>
+                )}
+            </Box>
             <Box sx={{ padding: '10px', marginBottom: '20px', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.5)', borderRadius: '6px' }}>
                 <Typography variant="h4" align="left" sx={{ marginBottom: 2, fontWeight: 'bold' }}>
                     Current Medications
@@ -315,6 +344,7 @@ const Medications = () => {
                         backgroundColor: pets.length === 0 ? 'primary.dark' : 'primary.dark',
                         opacity: pets.length === 0 ? 0.5 : 1, 
                     },
+                    cursor: pets.length === 0 ? 'not-allowed' : 'pointer',
                 }}
                 aria-label="add medication"
             >
@@ -329,16 +359,6 @@ const Medications = () => {
                 {loading ? (
                     <Grid item xs={12}>
                         <CircularProgress />
-                    </Grid>
-                ) : pets.length === 0 ? ( 
-                    <Grid item xs={12}>
-                        <Typography variant="h6" align="center" sx={{ color: 'gray' }}>
-                            You need to add a pet before adding medications. Go to the{' '}
-                            <Link to="/manage-pets" style={{ textDecoration: 'none', color: '#005035' }}>
-                                Manage Pets
-                            </Link>{' '}
-                            page.
-                        </Typography>
                     </Grid>
                 ) : medications.length === 0 ? (
                     <Grid item xs={12}>

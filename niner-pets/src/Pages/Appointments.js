@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Paper, Typography, TextField, Button, MenuItem, Snackbar, CircularProgress } from '@mui/material';
+import { Box, Grid, Paper, Typography, TextField, Button, MenuItem, Snackbar, CircularProgress, Alert } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { styled } from '@mui/system';
 
 const visitReasons = [
   "Routine Checkup",
@@ -93,7 +95,7 @@ function Appointments() {
         const data = await response.json();
         setPets(data);
       } catch (error) {
-        setError('Error fetching pet data: ' + error.message);
+        setError('');
       }
     };
   
@@ -157,6 +159,14 @@ function Appointments() {
     setSearchTerm(event.target.value);
   };
 
+  const WhiteIconAlert = styled(Alert)(({ theme }) => ({
+    backgroundColor: theme.palette.primary.main, 
+    color: 'white', 
+    '& .MuiAlert-icon': {
+      color: 'white !important', 
+    },
+  }));
+
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
   };
@@ -169,6 +179,27 @@ function Appointments() {
   return (
     <div className="app-background">
       <Box sx={{ flexGrow: 1, padding: 3 }}>
+      <Box sx={{ marginBottom: 2 }}>
+          {pets.length === 0 && (
+            <WhiteIconAlert severity="info">
+              No pets found. Please{' '}
+              <Link 
+                to="/manage-pets" 
+                style={{
+                  fontWeight: 'bold', 
+                  textDecoration: 'none', 
+                  color: 'white', 
+                  transition: 'color 0.3s', 
+                }}
+                onMouseEnter={(e) => e.target.style.color = 'black'} 
+                onMouseLeave={(e) => e.target.style.color = 'white'} 
+              >
+                go to the Manage Pets page
+              </Link>{' '}
+              to add a pet before making an appointment.
+            </WhiteIconAlert>
+          )}
+        </Box>
         <Grid container justifyContent="center" spacing={3}>
           <Grid item xs={12}>
             <Paper 
