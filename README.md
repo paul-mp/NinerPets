@@ -1,4 +1,4 @@
-**NinerPets**
+# **NinerPets**
 
 NinerPets is a pet management platform designed to help UNCC students efficiently manage their pets' health. 
 The application includes features for scheduling appointments, managing pet profiles, viewing medical records, and more.
@@ -8,16 +8,16 @@ The application includes features for scheduling appointments, managing pet prof
 - Implements NextAuth for authentication and secures user data.
 - Uses PostgreSQL hosted on AWS RDS for data storage and management.
 
-**Run Locally**
+# **Run Locally**
 
 **Clone the project**
-```git clone https://github.com/paul-mp/NinerPets.git```
+ ```git clone https://github.com/paul-mp/NinerPets.git```
 
 **Navigate to the project directory**
 
-```cd NinerPets```
+ ```cd NinerPets```
 
-**Backend Setup**
+# **Backend Setup**
 
 1. Install backend dependencies
 
@@ -43,7 +43,7 @@ Run the following command to start the Flask backend server:
 ```python app.py```
 The backend will start on http://localhost:5000 by default (or the port configured in app.py).
 
-**Frontend Setup**
+# **Frontend Setup**
 
 1. Install frontend dependencies
    
@@ -62,7 +62,7 @@ Run the following command to start the React frontend:
 
 The frontend will start on http://localhost:3000.
 
-**Technologies Used**
+## **Technologies Used**
 - React
 - Material-UI
 - NextAuth.js
