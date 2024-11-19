@@ -10,6 +10,7 @@ import Billing from './Pages/Billing';
 import Vets from './Pages/Vets';
 import Medications from './Pages/Medications';
 import Appointments from './Pages/Appointments';
+import Calendar from './Pages/calendar';
 import ManagePets from './Pages/ManagePets';
 import Profile from './Pages/Profile';
 import MedicalRecords from './Pages/MedicalRecords'
@@ -113,6 +114,8 @@ function App() {
         {/* Appointments page*/}
         <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
 
+        {/* Calendar page*/}
+        <Route path="/Calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
         {/* Appointments page*/}
         <Route path="/manage-pets" element={<ProtectedRoute><ManagePets /></ProtectedRoute>} />
 

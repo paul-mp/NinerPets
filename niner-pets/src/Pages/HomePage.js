@@ -153,6 +153,9 @@ function HomePage() {
                   <Button variant="contained" component={Link} to="/appointments">Schedule an Appointment</Button>
                 </Grid>
                 <Grid item>
+                  <Button variant="contained" component={Link} to="/calendar">Calendar</Button>
+                </Grid>
+                <Grid item>
                   <Button variant="contained" component={Link} to="/medications">Medications</Button>
                 </Grid>
                 <Grid item>

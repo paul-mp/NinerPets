@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 
+
 load_dotenv()
 
 # Initialize Flask app
@@ -14,6 +15,7 @@ app = Flask(__name__)
 # Configuration
 app.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY', 'supersecretkey')  
 app.config['JWT_TOKEN_LOCATION'] = ['headers']
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # For cross-origin session cookies
@@ -56,6 +58,7 @@ def login():
         return jsonify({'message': 'Login successful', 'token': token}), 200
     else:
         return jsonify({'error': 'Invalid credentials'}), 401
+    
     
 @app.route('/current_user', methods=['GET'])
 def current_user():
@@ -211,6 +214,7 @@ def delete_pet(pet_id):
     records = Record.query.filter_by(pet_id=pet_id).all()
     for record in records:
         db.session.delete(record)
+
 
     db.session.delete(pet)
     db.session.commit()
@@ -484,6 +488,7 @@ def add_appointment():
 
     return jsonify({'message': 'Appointment added successfully'}), 201
 
+
 @app.route('/medicalrecords', methods=['POST'])
 def add_record():
     data = request.json
@@ -574,6 +579,76 @@ def delete_record(record_id):
      db.session.commit()
 
      return jsonify({'message': 'Record deleted successfully'}), 200
+
+
+@app.route('/appointments', methods=['GET'])
+def get_appointments():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    try:
+        # Assuming you have some database query to fetch appointments
+        appointments = Appointment.query.filter_by(user_id=user_id).all()
+        
+        results = [{
+            'id': appointment.id,
+            'user_id': appointment.user_id,
+            'pet_id': appointment.pet_id,
+            'date': appointment.date.strftime('%Y-%m-%d'),  # Ensure this is a valid date
+            'vet_id': appointment.vet_id,
+            'reason': appointment.reason,
+            'time': appointment.time.strftime('%H:%M') if appointment.time else "No time set",
+            'location' : appointment.location,
+            'notes' : appointment.notes
+
+        } for appointment in appointments]
+
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/appointments/<int:appointment_id>', methods=['DELETE'])
+def delete_appointment(appointment_id):
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        return jsonify({'error': 'Appointment not found'}), 404
+
+    db.session.delete(appointment)
+    db.session.commit()
+
+    return jsonify({'message': 'Appointment deleted successfully'}), 200
+
+@app.route('/appointments/<int:appointment_id>', methods=['PUT'])
+def update_appointment(appointment_id):
+    data = request.json
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    # Update appointment fields only if they are present in the request
+    appointment.user_id = data.get('user_id', appointment.user_id)
+    appointment.pet_id = data.get('pet_id', appointment.pet_id)
+    appointment.vet_id = data.get('vet_id', appointment.vet_id)
+    appointment.reason = data.get('reason', appointment.reason)
+    appointment.date = data.get('date', appointment.date)
+    appointment.time = data.get('time', appointment.time)
+    appointment.location = data.get('location', appointment.location)
+    appointment.notes = data.get('notes', appointment.notes)
+
+    # Validate date and time if they are updated
+    if data.get('date'):
+        try:
+            datetime.strptime(data['date'], '%Y-%m-%d')
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    if data.get('time'):
+        try:
+            datetime.strptime(data['time'], '%H:%M')
+        except ValueError:
+            return jsonify({'error': 'Invalid time format. Use HH:MM.'}), 400
+
+    db.session.commit()
+    return jsonify({'message': 'Appointment updated successfully'}), 200
 
 if __name__ == '__main__':
     with app.app_context():
