@@ -599,13 +599,56 @@ def get_appointments():
             'vet_id': appointment.vet_id,
             'reason': appointment.reason,
             'time': appointment.time.strftime('%H:%M') if appointment.time else "No time set",
-            'location' : appointment.location
+            'location' : appointment.location,
+            'notes' : appointment.notes
 
         } for appointment in appointments]
 
         return jsonify(results)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/appointments/<int:appointment_id>', methods=['DELETE'])
+def delete_appointment(appointment_id):
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        return jsonify({'error': 'Appointment not found'}), 404
+
+    db.session.delete(appointment)
+    db.session.commit()
+
+    return jsonify({'message': 'Appointment deleted successfully'}), 200
+
+@app.route('/appointments/<int:appointment_id>', methods=['PUT'])
+def update_appointment(appointment_id):
+    data = request.json
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    # Update appointment fields only if they are present in the request
+    appointment.user_id = data.get('user_id', appointment.user_id)
+    appointment.pet_id = data.get('pet_id', appointment.pet_id)
+    appointment.vet_id = data.get('vet_id', appointment.vet_id)
+    appointment.reason = data.get('reason', appointment.reason)
+    appointment.date = data.get('date', appointment.date)
+    appointment.time = data.get('time', appointment.time)
+    appointment.location = data.get('location', appointment.location)
+    appointment.notes = data.get('notes', appointment.notes)
+
+    # Validate date and time if they are updated
+    if data.get('date'):
+        try:
+            datetime.strptime(data['date'], '%Y-%m-%d')
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    if data.get('time'):
+        try:
+            datetime.strptime(data['time'], '%H:%M')
+        except ValueError:
+            return jsonify({'error': 'Invalid time format. Use HH:MM.'}), 400
+
+    db.session.commit()
+    return jsonify({'message': 'Appointment updated successfully'}), 200
 
 if __name__ == '__main__':
     with app.app_context():
