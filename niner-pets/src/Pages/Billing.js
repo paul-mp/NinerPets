@@ -21,6 +21,8 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { styled } from '@mui/system';
 
 const Billing = () => {
   const [userId, setUserId] = useState(null);
@@ -290,7 +292,14 @@ const handleSaveEdit = async () => {
   }
 };
 
-  
+const WhiteIconAlert = styled(Alert)(({ theme }) => ({
+  backgroundColor: theme.palette.primary.main, 
+  color: 'white', 
+  '& .MuiAlert-icon': {
+    color: 'white !important', 
+  },
+}));
+
 const handleEditChange = (event) => {
   const { name, value } = event.target;
   setCurrentEdit((prevEdit) => ({
@@ -301,6 +310,27 @@ const handleEditChange = (event) => {
 
   return (
     <Box sx={{ flexGrow: 1, padding: 2 }}>
+      <Box sx={{ marginBottom: 2 }}>
+          {pets.length === 0 && (
+            <WhiteIconAlert severity="info">
+              No pets found. Please{' '}
+              <Link 
+                to="/manage-pets" 
+                style={{
+                  fontWeight: 'bold', 
+                  textDecoration: 'none', 
+                  color: 'white', 
+                  transition: 'color 0.3s', 
+                }}
+                onMouseEnter={(e) => e.target.style.color = 'black'} 
+                onMouseLeave={(e) => e.target.style.color = 'white'} 
+              >
+                go to the Manage Pets page
+              </Link>{' '}
+              to add a pet before proceeding with billing.
+            </WhiteIconAlert>
+          )}
+        </Box>
       <Box
         sx={{
           padding: '10px',
@@ -333,7 +363,7 @@ const handleEditChange = (event) => {
         }}
       >
         <IconButton
-          onClick={handleClickOpen}
+          onClick={pets.length === 0 ? (e) => e.preventDefault() : handleClickOpen}
           sx={{
             borderRadius: '50%',
             width: '40px',
@@ -343,6 +373,7 @@ const handleEditChange = (event) => {
             '&:hover': {
               backgroundColor: 'primary.dark',
             },
+            cursor: pets.length === 0 ? 'not-allowed' : 'pointer',
           }}
           aria-label="add balance"
         >
@@ -514,7 +545,8 @@ const handleEditChange = (event) => {
                   const formattedDate = new Date(entry.date).toLocaleDateString('en-US', {
                     month: 'numeric',
                     day: 'numeric',
-                    year: 'numeric'
+                    year: 'numeric',
+                    timeZone: 'UTC'
                   });
 
                   return (

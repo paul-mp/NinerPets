@@ -83,16 +83,22 @@ const ManagePets = () => {
     const fetchPets = () => {
         fetch(`http://localhost:5000/pets?user_id=${userId}`)
             .then(response => {
-                console.log('Response Status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch pets');
+                }
                 return response.json();
             })
             .then(data => {
+                // Ensure the data is an array
                 console.log('Pets Data:', data);
-                setPets(data);
+                setPets(Array.isArray(data) ? data : []);
             })
-            .catch(error => console.error('Error fetching pets:', error))
+            .catch(error => {
+                console.error('Error fetching pets:', error);
+                setPets([]); // Fallback to an empty array in case of error
+            })
             .finally(() => setLoading(false));
-    };
+    };    
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
