@@ -172,9 +172,11 @@ function Calendar() {
       });
   
       if (response.ok) {
-        window.location.reload(); 
         setSnackbarMessage('Event updated successfully!'); 
         setSnackbarOpen(true); 
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         throw new Error('Failed to update appointment');
       }
